@@ -31,7 +31,7 @@ output:
 urlcolor: blue
 linkcolor: black
 bibliography: references.bib
-csl: ../ieee.csl
+csl: ieee.csl
 ---
 
 \vspace{-5truemm}
@@ -45,7 +45,7 @@ csl: ../ieee.csl
 
 \begin{tikzpicture}[remember picture, overlay]
   \node [anchor=north east, xshift=-2.4cm, yshift = 7.0cm]  at (current page.north east)
-     {\includegraphics[height=3.8cm]{../personal_photo.jpg}};
+     {\includegraphics[height=3.8cm]{personal_photo.jpg}};
 \end{tikzpicture}
 
 <!-- https://stackoverflow.com/questions/23957278/how-to-add-table-of-contents-in-rmarkdown -->
@@ -232,10 +232,10 @@ df_no_missing <- census_total[!(census_total$workclass==" ?" |
 # Removing duplicate rows
 df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
 # Choosing Equal Number of datapoints from both classes.
-temp_df <- df_no_dup %>% group_by(income) %>% sample_n(3810)
+temp_df <- df_no_dup %>% group_by(income) %>% sample_n(100)
 # Removing the excess >50K class datapoints in order to make the sample
 # representative of the original dataset.
-sample_frame <-temp_df[1:(nrow(temp_df) - 2620),]
+sample_frame <-temp_df[1:(nrow(temp_df) - 70),]
 
 data_matrix_orig_mds <- data.matrix(sample_frame)
 

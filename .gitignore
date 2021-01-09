@@ -38,3 +38,5 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 personal_photo.jpg
+FinalReport_files/
+FinalReport.log
