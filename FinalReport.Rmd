@@ -250,6 +250,18 @@ print(paste0("The number of samples selected is: ", sample_number))
 write.csv(sample_frame,'5000frame.csv', row.names = TRUE, col.names = TRUE)
 ```
 
+```{r}
+# To read pre-sampled data
+
+sample_frame = read.csv("data/5000frame.csv")
+data_matrix_orig_mds <- data.matrix(sample_frame)
+ 
+data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
+sample_number <- nrow(data_matrix_mds)
+print(paste0("The number of samples selected is: ", sample_number))
+
+```
+
 
 ```{r echo=FALSE, eval=FALSE}
 # For 5000:
