@@ -964,6 +964,58 @@ fviz_cluster(clara_8, data = data_matrix_clus)
 fviz_cluster(clara_20, data = data_matrix_clus)
 ```
 
+### Self-Organizing maps (SOM)
+
+```{r}
+library(kohonen)
+
+```
+
+```{r}
+grid.size <- ceiling(sample_number ^ (1/2.5))
+som.grid <- somgrid(xdim = grid.size, ydim = grid.size, topo = 'hexagonal', toroidal = T)
+
+som.model <- som(data_matrix_scaled, grid = som.grid, keep.data = TRUE)
+```
+
+```{r}
+plot(som.model, type="changes")
+
+plot(som.model, type="count")
+
+plot(som.model, type="dist.neighbours")
+
+```
+
+```{r}
+## extract some data to make it easier to use
+
+som.events <- som.model$codes[[1]]
+som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255)
+som.dist <- as.matrix(dist(som.events))
+```
+
+
+```{r}
+plot(som.model,
+     type = 'mapping',
+     bg = som.events.colors[sample.int(length(som.events.colors), size = length(som.events.colors))],
+     keepMargins = F,
+     col = NA,
+     main = '')
+```
+
+```{r}
+## generate a plot after training.
+
+plot(som.model,
+     type = 'mapping',
+     bg = som.events.colors,
+     keepMargins = F,
+     col = NA,
+     main = '')
+```
+
 
 ## Validation of Clusterings
 
