@@ -40,3 +40,6 @@ vignettes/*.pdf
 personal_photo.jpg
 FinalReport_files/
 FinalReport.log
+
+# Additional Exclusions
+.DS_Store
