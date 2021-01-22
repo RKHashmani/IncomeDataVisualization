@@ -1005,6 +1005,16 @@ k_clus_20_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
 
 ```
 
+
+### Maybe Not Needed:
+```{r Clara-boot, cache=TRUE}
+
+clara_2_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        krange=2, seed=786)
+
+```
+
 __For k = 2__,
 ```{r}
 print(k_clus_2_boot)
