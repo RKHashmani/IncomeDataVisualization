@@ -937,6 +937,34 @@ fviz_cluster(k_clus_diana_5, data = data_matrix_scaled)
 
 ```
 
+## k-Medoids
+
+```{r}
+library(cluster)
+library(factoextra) # Duplicated from above
+```
+
+
+```{r cache=TRUE}
+clara_2 <- clara(data_matrix_clus, k=2, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_3 <- clara(data_matrix_clus, k=3, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_4 <- clara(data_matrix_clus, k=4, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_5 <- clara(data_matrix_clus, k=5, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_8 <- clara(data_matrix_clus, k=8, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_20 <- clara(data_matrix_clus, k=20, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+```
+
+```{r Clara}
+print (clara_2)
+fviz_cluster(clara_2, data = data_matrix_clus)
+fviz_cluster(clara_3, data = data_matrix_clus)
+fviz_cluster(clara_4, data = data_matrix_clus)
+fviz_cluster(clara_5, data = data_matrix_clus)
+fviz_cluster(clara_8, data = data_matrix_clus)
+fviz_cluster(clara_20, data = data_matrix_clus)
+```
+
+
 ## Validation of Clusterings
 
 Below is a list of all the libraries we use in this section.
