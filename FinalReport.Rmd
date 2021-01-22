@@ -1029,8 +1029,8 @@ Then, for APN, AD, ADM, and FOM, we use clValid(), which also conveniently does 
 
 ```{r Multi-valid-test, tidy=FALSE, cache=TRUE, warning=FALSE}
 
-multi_valid_test <- clValid(data_matrix_scaled, c(2, 4, 5, 20),
-                      clMethods = c("agnes", "diana", "kmeans" ),
+multi_valid_test <- clValid(data_matrix_scaled, c(2, 3, 4, 5, 8, 20),
+                      clMethods = c("agnes", "diana", "kmeans", "clara", "som" ),
                       validation = c("internal", "stability"),
                       maxitems = 50000,
                       method = "ward"
