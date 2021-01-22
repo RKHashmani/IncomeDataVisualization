@@ -964,7 +964,7 @@ fviz_cluster(clara_8, data = data_matrix_clus)
 fviz_cluster(clara_20, data = data_matrix_clus)
 ```
 
-### Self-Organizing maps (SOM)
+### Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
 
 ```{r}
 library(kohonen)
