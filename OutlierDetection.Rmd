@@ -309,8 +309,8 @@ head(data_frame_orig, 5)
 
 data_frame <- scale(data_frame_orig)
 
-data_frame <- data_frame[,-c(3, 4, 15)]
-# data_frame <- data_frame_orig[,c(1)]
+# data_frame <- data_frame[,-c(3, 4, 15)]
+data_frame <- data_frame[,-c(3, 4)]
 head(data_frame, 5)
 ```
 
@@ -357,5 +357,44 @@ outlier(data_clean_mh)
 
 ```{r}
 # Alt method:
+percentage.to.remove <- 5 # Remove 5% of points
+number.to.remove     <- trunc(nrow(data_frame) * percentage.to.remove / 100)
+m.dist               <- mahalanobis(data_frame, colMeans(data_frame), cov(data_frame))
+m.dist.order         <- order(m.dist, decreasing=TRUE)
+rows.to.keep.index   <- m.dist.order[(number.to.remove+1):nrow(data_frame)]
+data_frame_clean         <- data_frame[rows.to.keep.index,]
+```
+
+
+```{r}
+dim (data_frame_clean)
+dim (data_clean_mh)
+```
+
+
+```{r}
+outlier(data_frame_clean)
+outlier(data_clean_mh)
+```
+```{r, fig.height=10, fig.width=10}
+library(ggbiplot)
+
+pca_data <- prcomp(data_clean_mh, center = TRUE, scale. = TRUE, retx = TRUE)
+
+#I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
+source("my_functions.R")
+
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = data_clean_mh[,c(13)])
+
+# To make the arrows more visible
+
+# pca_plot$layers
+pca_plot$layers <- c(pca_plot$layers, pca_plot$layers[[1]])
+# pca_plot$layers
+pca_plot + 
+  labs(color="Income", # Labeling the Legend
+       title = "Plotting Datapoints on the First 2 Principal Components") +
+  theme(plot.title = element_text(hjust = 0.5),
+                     plot.caption=element_text(hjust = 0))
 ```
 
