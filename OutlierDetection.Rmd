@@ -1,0 +1,361 @@
+---
+title: "CENG 574 Assignment 6"
+author:
+- "Raheem Hashmani, Student I.D.: 2462927"
+
+date: "23/12/2020"
+
+header-includes:
+ \usepackage{titling}
+ \pretitle{\begin{flushleft}\Huge}
+ \posttitle{\end{flushleft}}
+ \preauthor{\begin{flushleft}\LARGE}
+ \postauthor{\end{flushleft}}
+ \predate{\begin{flushleft}\LARGE}
+ \postdate{\end{flushleft}}
+ \usepackage{tikz}
+ \usepackage{booktabs}
+ \usepackage{float}
+ \floatplacement{table}{H}
+ \floatplacement{figure}{H}
+
+
+output: 
+  bookdown::pdf_document2:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    extra_dependencies: "subfig"
+    
+    
+urlcolor: blue
+linkcolor: black
+bibliography: references.bib
+csl: ieee.csl
+---
+
+\vspace{-5truemm}
+
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"personal_photo.jpg\" style=\"float: right;width: 150px;\"/>')
+   });
+</script>
+
+\begin{tikzpicture}[remember picture, overlay]
+  \node [anchor=north east, xshift=-2.4cm, yshift = 7.0cm]  at (current page.north east)
+     {\includegraphics[height=3.8cm]{personal_photo.jpg}};
+\end{tikzpicture}
+
+<!-- https://stackoverflow.com/questions/23957278/how-to-add-table-of-contents-in-rmarkdown -->
+
+---
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(results = 'hold')
+# knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+```
+
+# Introduction
+
+In this report, we analyze the [U.S. Census Bureau Income Dataset](https://code.datasciencedojo.com/datasciencedojo/datasets/tree/master/Census%20Income) taken from Data Science Dojo [@RebeccaMerrett2019].
+
+This dataset was chosen because it has a large number of datapoints, 14 different variables, 2 labels with the possibility of having more than 2 clusters, and because of a personal interest in how various factors might affect the average income of an American citizen. 
+
+We first conduct a preliminery analysis where we try to find more information about the raw data, such as the data types of the various variables and the number of unique values they contain. Then, we perform both Principal Component Analysis (PCA) and multiple versions of Multidimensional scaling (MDS) to try and visualize our dataset on 2 dimensions. Following this, we perform multiple hierarchical clusterings and k-means clusterings to try and find the possible clusters within the dataset. While the labels tell us there are 2, we feel this might be a generalization given the 48,842 datapoints, and strive to see if more good clusters can be formed. Finally, we perform evaluations on the the formed clusters to test their stability and internal and external validity.
+
+Towards the end of the report, we discuss and analyze our results and give a brief conclusion of our findings.
+
+
+# Data
+
+In this dataset, the US Census Bureau surveyed 48,842 people and recorded 15 attributes including their ages, working class, years of education, and income, among other things. This dataset in its current form was compiled by Ronny Kohavi [@osti_421279] and is designed to be used for training and testing various classifiers, with 14 attributes as features and the last attribute, income level, as the class, being either above or below $50,000 USD (50K).
+
+This dataset has been previously used for various statistical analysis purposes, such as clustering aggregation [@Gionis2007], anomaly detection [@Pelleg2004], and mining emerging patterns [@Bailey2002].
+
+This dataset contains files for both training and testing datasets. We will perform preliminary analysis on both, perform PCA on the combined dataset, and perform MDS on only 5000 samples, taken as such that their class division matches the combined dataset population's division. This last one is due to the limitations of the computer being used and is subject to change for the final report.
+
+## Preliminary Analysis
+
+### Reading the Data
+
+We first load the datasets. Table 1 and Table \@ref(tab:Train-peek) show us the a peek inside the train dataset (the test dataset is of the same form). 
+
+```{r Train-peek, tidy=FALSE}
+
+census_train <- read.csv("Data/census/adult.data.csv", header=TRUE, sep = ",")
+census_test <- read.csv("Data/census/adult.test.csv", header=TRUE, sep = ",")
+
+library("knitr")
+
+kable(census_train[0:8,0:7], align = "l", row.names = TRUE,
+      caption = "The First 7 Columns.", booktabs = T)
+kable(census_train[0:8,8:15], align = "l", row.names = TRUE,
+      caption = "The Remaining 8 Columns.", booktabs = T)
+
+```
+
+
+### Determining Basic Properties
+
+Now let us find the number of samples for the test and train datasets and the number of features for each sample.
+
+```{r}
+samples_train = nrow(census_train)
+features_train = ncol(census_train)
+
+samples_test = nrow(census_test)
+features_test = ncol(census_test)
+
+sprintf(paste0("The total number of samples in the training set is %s and the number of ",
+               "features is %s."), samples_train, features_train)
+sprintf(paste0("The total number of samples in the test set is %s and the number of ",
+               "features is %s."), samples_test, features_test)
+```
+
+However, this dataset contains one column for its classes, the "income" column. Thus, in essence, there are __14 features and 2 classes__.
+
+### Determining the Number of Unique Values
+
+__Training Set__ 
+
+First, we will find the number of unique values in each column for the Training set.
+
+```{r message = FALSE}
+library("dplyr") # Loading a library that will help us.
+census_train %>% summarise_all(n_distinct)
+```
+
+Let us see if our dataset is imbalanced.
+```{r}
+census_train %>% group_by(income) %>% summarize(count=n())
+```
+
+As we can see, there are almost __3 times more "<=50K" classes then there are ">50K" classes__ (3.15 times, to be precise).
+
+__Test Set__
+
+Now we will find the number of unique values in each column for the Test set.
+
+```{r message = FALSE}
+census_test %>% summarise_all(n_distinct)
+```
+
+Let's see if the test set is imbalanced as well.
+```{r}
+census_test %>% group_by(income) %>% summarize(count=n())
+```
+
+Once again, there are almost __3 times more "<=50K" classes then there are ">50K" classes__ (3.23 times, to be precise).
+
+### Column Labels and Various Properties
+
+Now let us summarize by __combining__ both the Train and Test datasets. Table \@ref(tab:combined-table) shows the range of all the values and Table 4 summarizes the learned properties so far.
+```{r combined-table, tidy=FALSE}
+census_total <- rbind(census_train, census_test)
+
+#As a Sanity Check:
+
+samples_total = nrow(census_total)
+features_total = ncol(census_total)
+
+sprintf(paste0("The number of samples in the total set is %s and the number of ",
+               "features is %s."), samples_total, features_total)
+
+census_total %>% summarise_all(n_distinct)
+
+range = data.frame(min=sapply(census_total,min),max=sapply(census_total,max))
+kable(range, align = "l", row.names = TRUE,
+      caption = "The Range of Values for all Features", booktabs = T)
+
+# To see the unique classes in the final feature, "income".
+vec <- as.vector(census_total['income'])
+unique(vec)
+
+```
+
+Table: Column labels, their type, number of unique values, range (if applicable), and representation type for the combined dataset.
+
+| Column Label   | Type                  | Unique Values (Range if Applicable) | Representation |
+|----------------|-----------------------|-------------------------------------|----------------|
+| age            | Discrete              | 73 (17 - 90)                        | Ratio          |
+| workclass      | Qualitative           | 9                                   | Nominal        |
+| fnlwgt         | Discrete              | 21648 (12285 - 1490400)             | Ratio          |
+| education      | Qualitative           | 16                                  | Ordinal        |
+| education-num  | Discrete              | 16 (1-16)                           | Ratio          |
+| marital-status | Qualitative           | 7                                   | Nominal        |
+| occupation     | Qualitative           | 15                                  | Nominal        |
+| relationship   | Qualitative           | 6                                   | Nominal        |
+| race           | Qualitative           | 5                                   | Nominal        |
+| sex            | Qualitative           | 2                                   | Nominal        |
+| capital-gain   | Discrete              | 119 (0 - 99999)                     | Ratio          |
+| capital-loss   | Discrete              | 92 (0 - 4356)                       | Ratio          |
+| hours-per-week | Discrete              | 94 (1 - 99)                         | Ratio          |
+| native-country | Qualitative           | 42                                  | Nominal        |
+| income         | Qualitative (Classes) | 2                                   | Ordinal        |
+
+
+## Data Preparation
+
+We will perform three different data preparations, one for PCA, one for MDS, and one for clustering.
+
+__PCA__
+
+First, we will turn our Data Frame into a numerical matrix. This process will apply a label encoding to our qualitative data. Table 5 and Table \@ref(tab:Data-matrix-orig) shows a sample of this matrix.
+```{r Data-matrix-orig}
+data_matrix_orig <- data.matrix(census_total)
+
+kable(data_matrix_orig[0:8,0:7], align = "l", caption = "The First 7 Columns.", booktabs = T)
+kable(data_matrix_orig[0:8,8:15], align = "l", caption = "The Remaining 8 Columns.", booktabs = T)
+
+```
+
+Finally, we will remove the last column as it is our "classes" column, i.e. income.
+
+```{r}
+data_matrix <- data_matrix_orig[,-c(15)]
+```
+
+__MDS__ 
+
+Because many MDS algorithms are either $O(n^{3})$ or $O(n^{2})$, we will sample them according to their proportions for the "income" class. Using the combined dataset, we will remove rows with missing data (since we have an ample number of rows, we can afford to delete them) and duplicate data (certain MDS algorithms, such as Sammon's Non-Linear Mapping, do not work if there are 0s present in the distance matrix, so duplicate rows must be removed) and sample 5000 datapoints, making sure that the ratio of "<=50K" to ">50K" is 3.2:1, as averaged in Section 2.1.3. Finally, we will convert it into a data matrix and remove the "income" column, similar to what we did for PCA.
+
+```{r Data-prep-mds, cache=TRUE}
+# Removing rows with missing values
+df_no_missing <- census_total[!(census_total$workclass==" ?" | 
+                                  census_total$occupation==" ?" | 
+                                  census_total$native.country ==" ?"),]
+# Removing duplicate rows
+df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
+# Choosing Equal Number of datapoints from both classes.
+temp_df <- df_no_dup %>% group_by(income) %>% sample_n(100)
+# Removing the excess >50K class datapoints in order to make the sample
+# representative of the original dataset.
+sample_frame <-temp_df[1:(nrow(temp_df) - 70),]
+
+data_matrix_orig_mds <- data.matrix(sample_frame)
+
+data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
+sample_number <- nrow(data_matrix_mds)
+print(paste0("The number of samples selected is: ", sample_number))
+
+```
+
+```{r eval=FALSE, echo=TRUE}
+# To save the selected sample dataset, for reproducibility.
+# write.csv(sample_frame,'5000frame.csv', row.names = TRUE, col.names = TRUE)
+```
+
+```{r}
+# To read pre-sampled data
+
+sample_frame = read.csv("data/5000frame.csv")
+data_matrix_orig_mds <- data.matrix(sample_frame)
+ 
+data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
+sample_number <- nrow(data_matrix_mds)
+print(paste0("The number of samples selected is: ", sample_number))
+
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+# For 5000:
+# 3810, 2620
+# For 130:
+#   100, 70
+# For 1000:
+#   762, 524
+
+sample_frame %>% group_by(income) %>% summarize(count=n())
+
+sample_matrix <- data.frame(data_matrix_orig_mds)
+sample_matrix %>% group_by(income) %>% summarize(count=n())
+
+
+# For Total
+census_total %>% group_by(income) %>% summarize(count=n())
+
+sample_matrix <- data.frame(data_matrix_orig)
+sample_matrix %>% group_by(income) %>% summarize(count=n())
+
+
+# To check removed missing and duplicated data
+range = data.frame(min=sapply(df_no_missing,min),max=sapply(df_no_missing,max))
+kable(range, align = "l", row.names = TRUE,
+      caption = "The Range of Values for all Features", booktabs = T)
+
+print(paste0("No. of rows without missing: ", nrow(df_no_missing)))
+print(paste0("No. of rows without missing and duplicate: ", nrow(df_no_dup)))
+
+
+```
+
+```{r}
+# Testing entire dataset
+
+data_frame_orig <- data.matrix(df_no_dup)
+
+```
+
+
+```{r}
+#Removing Final Weight and Categorical Education
+head(data_frame_orig, 5)
+
+data_frame <- scale(data_frame_orig)
+
+data_frame <- data_frame[,-c(3, 4, 15)]
+# data_frame <- data_frame_orig[,c(1)]
+head(data_frame, 5)
+```
+
+
+```{r}
+boxplot(data_frame)$out
+```
+```{r}
+set.seed(482)
+boxplot(data_frame)
+identify(rep(1, length(data_frame)), data_frame, labels = seq_along(data_frame))
+```
+
+
+```{r}
+# Load the package
+library(ggstatsplot)
+
+# Create a boxplot of the dataset, outliers are shown as two distinct points
+boxplot(data_frame)$out
+#Create a boxplot that labels the outliers  
+ggbetweenstats(data_frame, age, relationship, outlier.tagging = TRUE)
+```
+```{r}
+library(psych)
+```
+
+```{r}
+outlier(data_frame)
+```
+```{r}
+md <- mahalanobis(data_frame, center = colMeans(data_frame), cov = cov(data_frame))
+
+alpha <- .001
+cutoff <- (qchisq(p = 1 - alpha, df = ncol(data_frame)))
+names_outliers_MH <- which(md > cutoff)
+excluded_mh <- names_outliers_MH
+data_clean_mh <- data_frame[-excluded_mh, ]
+dim (data_frame[excluded_mh, ])
+dim (data_clean_mh)
+
+outlier(data_clean_mh)
+```
+
+```{r}
+# Alt method:
+```
+
