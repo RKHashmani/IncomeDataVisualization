@@ -981,17 +981,24 @@ som.model <- som(data_matrix_scaled, grid = som.grid, keep.data = TRUE)
 ```{r}
 plot(som.model, type="changes")
 
-plot(som.model, type="count")
+plot(som.model, type="count", heatkey = TRUE)
 
 plot(som.model, type="dist.neighbours")
 
+plot(som.model, type="codes")
+
+```
+```{r, fig.height=10, fig.width=10}
+plot(som.model)
 ```
 
 ```{r}
 ## extract some data to make it easier to use
 
 som.events <- som.model$codes[[1]]
+
 som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255)
+
 som.dist <- as.matrix(dist(som.events))
 ```
 
