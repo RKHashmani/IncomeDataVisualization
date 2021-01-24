@@ -344,7 +344,7 @@ outlier(data_frame)
 ```{r}
 md <- mahalanobis(data_frame, center = colMeans(data_frame), cov = cov(data_frame))
 
-alpha <- .001
+alpha <- .1
 cutoff <- (qchisq(p = 1 - alpha, df = ncol(data_frame)))
 names_outliers_MH <- which(md > cutoff)
 excluded_mh <- names_outliers_MH
@@ -357,7 +357,7 @@ outlier(data_clean_mh)
 
 ```{r}
 # Alt method:
-percentage.to.remove <- 5 # Remove 5% of points
+percentage.to.remove <- 10 # Remove 5% of points
 number.to.remove     <- trunc(nrow(data_frame) * percentage.to.remove / 100)
 m.dist               <- mahalanobis(data_frame, colMeans(data_frame), cov(data_frame))
 m.dist.order         <- order(m.dist, decreasing=TRUE)
@@ -374,7 +374,7 @@ dim (data_clean_mh)
 
 ```{r}
 outlier(data_frame_clean)
-outlier(data_clean_mh)
+# outlier(data_clean_mh)
 ```
 ```{r, fig.height=10, fig.width=10}
 library(ggbiplot)
