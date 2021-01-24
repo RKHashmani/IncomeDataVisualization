@@ -307,7 +307,9 @@ data_frame_orig <- data.matrix(df_no_dup)
 #Removing Final Weight and Categorical Education
 head(data_frame_orig, 5)
 
-data_frame <- scale(data_frame_orig)
+data_frame <- data_frame_orig
+
+# data_frame <- scale(data_frame_orig)
 
 # data_frame <- data_frame[,-c(3, 4, 15)]
 data_frame <- data_frame[,-c(3, 4)]
@@ -344,7 +346,7 @@ outlier(data_frame)
 ```{r}
 md <- mahalanobis(data_frame, center = colMeans(data_frame), cov = cov(data_frame))
 
-alpha <- .1
+alpha <- .5
 cutoff <- (qchisq(p = 1 - alpha, df = ncol(data_frame)))
 names_outliers_MH <- which(md > cutoff)
 excluded_mh <- names_outliers_MH
@@ -353,6 +355,7 @@ dim (data_frame[excluded_mh, ])
 dim (data_clean_mh)
 
 outlier(data_clean_mh)
+boxplot(data_clean_mh)
 ```
 
 ```{r}
@@ -396,5 +399,130 @@ pca_plot +
        title = "Plotting Datapoints on the First 2 Principal Components") +
   theme(plot.title = element_text(hjust = 0.5),
                      plot.caption=element_text(hjust = 0))
+```
+
+```{r}
+frame <- data.frame(data_frame)
+dim(frame) 
+```
+
+```{r}
+# Individual Removal
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$age, .25)
+Q3 <- quantile(frame$age, .75)
+IQR <- IQR(frame$age)
+
+# a <- Q3 + 1.5*IQR
+# b <- Q1 - 1.5*IQR
+# print (a)
+# print (b)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$age>= (Q1 - 1.5*IQR) & frame$age<= (Q3 + 1.5*IQR))
+
+# For workclass
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$workclass, .25)
+# Q3 <- quantile(frame$workclass, .75)
+# IQR <- IQR(frame$workclass)
+# 
+# a <- Q3 + 1.5*IQR
+# b <- Q1 - 1.5*IQR
+# print (a)
+# print (b)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$workclass>= (Q1 - 1.5*IQR) & frame$workclass<= (Q3 + 1.5*IQR))
+
+
+# For Education
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$education.num, .25)
+Q3 <- quantile(frame$education.num, .75)
+IQR <- IQR(frame$education.num)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$education.num>= (Q1 - 1.5*IQR) & frame$education.num<= (Q3 + 1.5*IQR))
+
+# For marital
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$marital.status, .25)
+# Q3 <- quantile(frame$marital.status, .75)
+# IQR <- IQR(frame$marital.status)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$marital.status>= (Q1 - 1.5*IQR) & frame$marital.status<= (Q3 + 1.5*IQR))
+
+# For Occupation
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$occupation, .25)
+# Q3 <- quantile(frame$occupation, .75)
+# IQR <- IQR(frame$occupation)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$occupation>= (Q1 - 1.5*IQR) & frame$occupation<= (Q3 + 1.5*IQR))
+
+# # For race
+# 
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$race, .25)
+# Q3 <- quantile(frame$race, .75)
+# IQR <- IQR(frame$race)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$race>= (Q1 - 1.5*IQR) & frame$race<= (Q3 + 1.5*IQR))
+
+# For capital gain
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$capital.gain, .25)
+Q3 <- quantile(frame$capital.gain, .75)
+IQR <- IQR(frame$capital.gain)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$capital.gain>= (Q1 - 1.5*IQR) & frame$capital.gain<= (Q3 + 1.5*IQR))
+
+# For capital loss
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$capital.loss, .25)
+Q3 <- quantile(frame$capital.loss, .75)
+IQR <- IQR(frame$capital.loss)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$capital.loss>= (Q1 - 1.5*IQR) & frame$capital.loss<= (Q3 + 1.5*IQR))
+
+# For hours per week
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$hours.per.week, .25)
+Q3 <- quantile(frame$hours.per.week, .75)
+IQR <- IQR(frame$hours.per.week)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$hours.per.week>= (Q1 - 1.5*IQR) & frame$hours.per.week<= (Q3 + 1.5*IQR))
+
+#view row and column count of new data frame
+dim(frame) 
+# head (frame, 2)
+
+```
+
+```{r}
+head(frame, 2)
+
+library("dplyr")
+frame %>% group_by(income) %>% summarize(count=n())
+
+boxplot(scale(data_frame))
+
+frame_scaled <- scale(frame)
+boxplot(frame_scaled)
 ```
 
