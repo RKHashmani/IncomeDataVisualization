@@ -997,14 +997,14 @@ plot(som.model)
 
 som.events <- som.model$codes[[1]]
 
-som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255)
+som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255) # DID NOT WORK
 
 som.dist <- as.matrix(dist(som.events))
 ```
 
 
 ```{r}
-plot(som.model,
+plot(som.model, # DID NOT WORK
      type = 'mapping',
      bg = som.events.colors[sample.int(length(som.events.colors), size = length(som.events.colors))],
      keepMargins = F,
@@ -1013,7 +1013,7 @@ plot(som.model,
 ```
 
 ```{r}
-## generate a plot after training.
+## generate a plot after training. DID NOT WORK
 
 plot(som.model,
      type = 'mapping',
@@ -1021,6 +1021,92 @@ plot(som.model,
      keepMargins = F,
      col = NA,
      main = '')
+```
+
+```{r}
+#WORKS
+mydata <- som.model$codes 
+wss <- (nrow(mydata)-1)*sum(apply(mydata,2,var)) 
+for (i in 2:15) {
+  wss[i] <- sum(kmeans(mydata, centers=i)$withinss)
+}
+plot(wss)
+```
+```{r}
+par(mfrow=c(1,1)) # back to one plot
+clusterdata <- getCodes(som.model)
+wss <- (nrow(clusterdata)-1)*sum(apply(clusterdata,2,var))
+for (i in 1:30) wss[i] <- sum(kmeans(clusterdata,
+                                     centers=i)$withinss) #i range from 1 to no of nodes -1...
+par(mar=c(5.1,4.1,4.1,2.1)) #par sets or adjusts plotting parameters. Not allways necessary. "mar" = margin.
+plot(1:30, wss, type="b", xlab="Number of Clusters", #match i
+     ylab="Within groups sum of squares", main="Within cluster sum of squares (WCSS)")
+
+```
+
+
+```{r}
+#WORKS
+k = 2
+set.seed(786) #for reproducability
+fit_kmeans <- kmeans(clusterdata[,1:4], k) #3 clusters are used, as indicated by the wss development.
+cl_assignmentk <- fit_kmeans$cluster[som.model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
+#but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
+clustersKm <- cl_assignmentk #back to original data.
+```
+```{r}
+#WORKS
+#2a. Create distance matrix
+DistanceM <- dist(clusterdata[,1:4], method = "euclidean") #create the distance matrix
+fit_hac <- hclust(DistanceM, method="ward.D2") #fit the distances. "D2", since "DistanceM" is not squared.
+plot(fit_hac) #display dendrogram. To me, it looks like a 5 or 6 cluster solution.
+#in my world 3-5 clusters
+HACgroups <- cutree(fit_hac, k) # cut tree into k clusters
+# draw dendrogram with red borders around the 6 clusters 
+rect.hclust(fit_hac, k, border="grey")
+```
+
+```{r}
+#WORKS
+cl_assignmenth <- HACgroups[som.model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
+#but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
+clustersHac <- cl_assignmenth #back to original data.
+```
+
+```{r}
+
+head(data_matrix_orig_clus, 5)
+```
+
+
+```{r}
+#WORKS
+trueN <- data_matrix_orig_clus
+kmeancolor <- clustersKm #set color indicator
+haccolor <- clustersHac #set color indicator
+trueccolor <- trueN #set color indicator
+```
+```{r}
+#WORKS
+contrast <- c("#FA4925", "#22693E", "#D4D40F", "#2C4382", "#F0F0F0", "#3D3D3D") #my own, contrasting pairs
+kindofpretty <- c("#B39B66", "#3B3828", "#FAE6B9", "#F2F2F2", "#86BA9F", "#135E1F", "#FFF70A", "#FFB10A", "#0498BD", "#FF780A") #my own
+kindofpretty2 <- c("#B39B66", "#3B3828", "#FAE6B9", "#F2F2F2", "#F58B00", "#F5D800", "#7185A3", "#786187") #my own
+#or define palettes using RColorBrewer:
+```
+
+
+```{r , fig.height=10, fig.width=10}
+#WORKS
+colour4 <- tricolor(som.model$grid, phi = c(pi/8, 6, -pi/6), offset = 0.1)
+par(mfrow=c(1,1))
+plot(som.model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_clus[,15],col=contrast[trueccolor])
+add.cluster.boundaries(som.model, fit_kmeans$cluster, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
+```
+
+```{r , fig.height=10, fig.width=10}
+par(mfrow=c(1,1))
+plot(som.model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_clus[,15],col=contrast[haccolor])
+add.cluster.boundaries(som.model, HACgroups, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
 ```
 
 
