@@ -5,22 +5,22 @@ setwd("/Users/macbookpro/Documents/GitHub/IncomeDataVisualization")
 library(caret) # Dummy variables
 library(umap)
 library(Rtsne)
-library(som)
+library(uwot)
 
 # To read pre-sampled data
 
-sample_frame = read.csv("Data/5000frame.csv")
+sample_frame = read.csv("/Users/macbookpro/Documents/GitHub/IncomeDataVisualization/Data/5000framev1.csv")
 
 # Frame to Matrix
-data_matrix <- data.matrix(sample_frame)
+data_matrix_orig <- data.matrix(sample_frame)
 
 # Extracting the labels
-dataLabels = data_matrix_orig[,15] %>%
+dataLabels = data_matrix_orig[,11] %>%
   unlist %>%
   factor(labels = c("<50K",">50K"))
 
 # Removing the Labels
-data_matrix <- data_matrix_orig[,-c(15)]
+data_matrix <- data_matrix_orig[,-c(11)]
 s = scale(data_matrix_OHE, center = FALSE, scale = TRUE)
 sample_number <- nrow(data_matrix)
 print(paste0("The number of samples selected is: ", sample_number))
