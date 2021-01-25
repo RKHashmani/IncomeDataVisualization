@@ -81,6 +81,28 @@ This dataset contains files for both training and testing datasets. We will perf
 
 ## Preliminary Analysis
 
+```{r}
+# All the Libraries we need
+library("knitr")
+library(plyr)
+library(dplyr)
+library(ggbiplot)
+library(smacof)
+library(MASS)
+library(cluster)
+library(purrr)
+library(dendextend)
+library(factoextra)
+library(cluster) # For k-medoid
+library(kohonen) # SOM
+# For Validation
+library(fpc)
+library(clValid)
+library(mclust)
+library(NbClust)
+
+```
+
 ### Reading the Data
 
 We first load the datasets. Table 1 and Table \@ref(tab:Train-peek) show us the a peek inside the train dataset (the test dataset is of the same form). 
@@ -90,7 +112,6 @@ We first load the datasets. Table 1 and Table \@ref(tab:Train-peek) show us the 
 census_train <- read.csv("Data/census/adult.data.csv", header=TRUE, sep = ",")
 census_test <- read.csv("Data/census/adult.test.csv", header=TRUE, sep = ",")
 
-library("knitr")
 
 kable(census_train[0:8,0:7], align = "l", row.names = TRUE,
       caption = "The First 7 Columns.", booktabs = T)
@@ -127,8 +148,6 @@ First, we will find the number of unique values in each column for the Training 
 
 ```{r message = FALSE}
 
-library(plyr)
-library(dplyr)
 
 census_train %>% summarise_all(n_distinct)
 ```
@@ -572,7 +591,6 @@ Finally, we will use a modified ggbiplot to plot the first 2 principal component
 
 ```{r biplot, tidy=FALSE, fig.height=10, fig.width=10, fig.cap="Plotting all the datapoints on the first 2 Principal Components."}
 
-library(ggbiplot)
 
 #I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
 source("my_functions.R")
@@ -643,8 +661,7 @@ We will perform our 4 MDS processes on the distance matrix, generated from the s
 # sample_frame <- sample_n(census_total,sample_number)
 # data_matrix_orig <- data.matrix(sample_frame)
 # data_matrix <- data_matrix_orig[,-c(15)]
-library(smacof)
-library(MASS)
+
 ```
 
 
@@ -851,13 +868,6 @@ plot(best_smacof_mds$conf,
 We first perform Agglomerative Nesting (AGNES) hierarchical clustering. We load all the necessary libraries, create our scaled distance matrix, and find hierarchical clusters for the 6 linkages, noting their agglomerative coefficients below. Figure \@ref(fig:Hier-link) shows the dendrograms for all the linkages. Then, we perform the Divisive Analysis (DIANA) clustering, show its divisive coefficient, and plot its dendrogram in Figure \@ref(fig:Hier-diana).
 
 
-```{r}
-# Loading libraries we will need
-library(cluster)
-library(purrr)
-library(dendextend)
-```
-
 
 ```{r Dist-matrix-scaled, cache=TRUE}
 
@@ -990,9 +1000,6 @@ plot(dend_col_diana_5, main = "Dendrogram (method = DIANA, k=5)")
 
 First, we try to estimate the best number of clusters, k. Figure \@ref(fig:K-estimate-plot) shows the results of the elbow and silhouette methods. For the elbow method, there seems to be a small bend at k = 12. From the silhouette method, k = 2 seems to be the best choice.
 
-```{r}
-library(factoextra)
-```
 
 
 ```{r K-estimate, warning=FALSE, cache=TRUE}
@@ -1082,10 +1089,6 @@ fviz_cluster(k_clus_diana_5, data = data_matrix_scaled)
 
 ## k-Medoids
 
-```{r}
-library(cluster)
-library(factoextra) # Duplicated from above
-```
 
 
 ```{r Clara, cache=TRUE}
@@ -1109,10 +1112,6 @@ fviz_cluster(clara_12, data = data_matrix_clus)
 
 ## Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
 
-```{r}
-library(kohonen)
-
-```
 
 ```{r SOM, cache=TRUE}
 grid_size <- ceiling(sample_number ^ (1/2.5))
@@ -1234,18 +1233,6 @@ add.cluster.boundaries(som_model, HACgroups, lwd = 3, lty = 2, col=contrast[4]) 
 
 ## Validation of Clusterings
 
-Below is a list of all the libraries we use in this section.
-
-```{r}
-library(fpc)
-
-library(clValid)
-library(kohonen)
-library(mclust)
-
-library(NbClust)
-library(factoextra)
-```
 
 ### Stability Testing
 
@@ -1643,7 +1630,7 @@ From the stability tests, for the nonparametric bootstrap method, we can see tha
 
 For all of the internal validation tests, Connectivity, Dunn Index, and Silhouette Width, the DIANA hierarchical clustering with cutoff at k = 2 had the best scores (0.0000, 0.6309, 0.6581, respectively). Thus, 2 clusters seem to be the best with respect to internal validation measures. 
 
-Since we can visualize Silhouette plots, and we know k = 2 seems to be the ideal clustering size, Figures \@ref(fig:Hier-sil-plots) and \@ref(fig:K-means-sil-plots) show the Silhouettes of all of our k = 2 clusterings, both hierarchical and k-means. The DIANA and GAveraged hierarchical plots, Figures \@ref(fig:Hier-sil-plots) (a) and (c) seem to be identical, while the Ward's Method hierarchical plot, Figure \@ref(fig:Hier-sil-plots) (b) seems to have some negative values, indicating that some samples might have been assigned to the wrong cluster. The DIANA and GAveraged initialized k-means silhouettes, Figures \@ref(fig:K-means-sil-plots) (c) and (d),  also seem to be identical, while (a) and (b) have some negative values again. The k=10 k-means clustering's Silhouette was also plotted, Figure \@ref(fig:K-means-10-sil-plot), because it had the best AD and FOM test scores. However, we can see numerous negative values, indicating that this cluster numbering might not be ideal.
+Since we can visualize Silhouette plots, and we know k = 2 seems to be the ideal clustering size, Figures \@ref(fig:Hier-sil-plots) and \@ref(fig:K-means-sil-plots) show the Silhouettes of all of our k = 2 clusterings, both hierarchical and k-means. The DIANA and GAveraged hierarchical plots, Figures \@ref(fig:Hier-sil-plots) (a) and (c) seem to be identical, while the Ward's Method hierarchical plot, Figure \@ref(fig:Hier-sil-plots) (b) seems to have some negative values, indicating that some samples might have been assigned to the wrong cluster. The DIANA and GAveraged initialized k-means silhouettes, Figures \@ref(fig:K-means-sil-plots) (c) and (d),  also seem to be identical, while (a) and (b) have some negative values again. The k=10 k-means clustering's Silhouette was also plotted, Figure \@ref(fig:K-means-12-sil-plot), because it had the best AD and FOM test scores. However, we can see numerous negative values, indicating that this cluster numbering might not be ideal.
 
 Finally, for external validation tests, Table 9 shows that almost all of the clustering options have poor scores that are very close to 0, with some (Ward's Method hierarchical and its initialized k-means clustering) being negative values. This tells us that there is a poor agreement between these k = 2 clusterings and the original labeling of our dataset. The largest value is only 0.0219, shared by the DIANA and GAveraged hierarchical clusterings as well as their initialized k-means clustering. 
 
