@@ -3,13 +3,12 @@ setwd("/Users/macbookpro/Documents/GitHub/IncomeDataVisualization")
 
 # Activating packages
 library(caret) # Dummy variables
-library(umap)
 library(Rtsne)
 library(uwot)
 
 # To read pre-sampled data
 
-sample_frame = read.csv("/Users/macbookpro/Documents/GitHub/IncomeDataVisualization/Data/5000framev1.csv")
+sample_frame = read.csv("C:/Users/Deniz/Documents/GitHub/IncomeDataVisualization/Data/5000framev1.csv")
 
 # Frame to Matrix
 data_matrix_orig <- data.matrix(sample_frame)
@@ -37,13 +36,38 @@ write.csv(data5000_OHE,'5000frameOHE.csv', row.names = TRUE, col.names = TRUE)
 ## n_neighbors 5-50 , 10-15 
 ## min_dist 0.001-0.5 , 0.1
 ## def config 15, 0.1
-UMAP_5000 = umap(data_matrix)
+i = 10
+UMAP_5000 = umap(data_matrix, n_neighbors = i, min_dist = 0.3)
 df = data.frame(X = UMAP_5000$layout[,1],
                 Y = UMAP_5000$layout[,2],
                 Labels = dataLabels)
 
-ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
+plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
   geom_point()
+name = paste("T_T ",i,"test.png")
+png(name)
+print(plot)
+dev.off()
+
+# Hyperparameter tuning
+min_dist_1 = seq(0.001,0.2,0.01)
+min_dist_2 = seq(0.1,0.5,0.05)
+min_dist = c(min_dist_1, min_dist_2)
+
+for (n_neig in seq(5,50,5)) { # 46 Iterations
+  for (min_distance in min_dist) { # 29 Iterations
+    UMAP_Data = umap(data_matrix, n_neighbors = n_neig, min_dist = min_distance)
+    df = data.frame(X = UMAP_Data$layout[,1],
+                    Y = UMAP_Data$layout[,2],
+                    Labels = dataLabels)
+    plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
+      geom_point()
+    fileName = paste("N_N", n_neig, "M_D", min_distance)
+    png(fileName)
+    print(plot)
+    dev.off()
+  }
+}
 
 UMAP_5000_OHE = umap(data_matrix_OHE)
 df = data.frame(X = UMAP_5000_OHE$layout[,1],
