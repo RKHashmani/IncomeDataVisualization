@@ -345,8 +345,15 @@ clean_sample %>% group_by(income) %>% summarize(count=n()) # Checking if above w
 # To read the sampled data
 
 clean_sample <- read.csv("data/5000framev1.csv")
+# clean_sample %>% group_by(income) %>% summarize(count=n()) 
 ```
 
+```{r eval=FALSE}
+# clean_sample <- clean_sample[,-c(11)]
+# dim (clean_sample)
+# clean_sample <- clean_sample[!duplicated(clean_sample), ]
+# dim (clean_sample)
+```
 
 ```{r}
 
