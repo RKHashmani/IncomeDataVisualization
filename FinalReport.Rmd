@@ -325,7 +325,7 @@ clean_sample %>% group_by(income) %>% summarize(count=n()) # Checking if above w
 ```{r}
 # To read the sampled data
 
-clean_sample <- read.csv("data/100framev1.csv")
+clean_sample <- read.csv("data/5000framev1.csv")
 ```
 
 
