@@ -60,24 +60,7 @@ knitr::opts_chunk$set(results = 'hold')
 knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
 ```
 
-# Introduction
 
-In this report, we analyze the [U.S. Census Bureau Income Dataset](https://code.datasciencedojo.com/datasciencedojo/datasets/tree/master/Census%20Income) taken from Data Science Dojo [@RebeccaMerrett2019].
-
-This dataset was chosen because it has a large number of datapoints, 14 different variables, 2 labels with the possibility of having more than 2 clusters, and because of a personal interest in how various factors might affect the average income of an American citizen. 
-
-We first conduct a preliminery analysis where we try to find more information about the raw data, such as the data types of the various variables and the number of unique values they contain. Then, we perform both Principal Component Analysis (PCA) and multiple versions of Multidimensional scaling (MDS) to try and visualize our dataset on 2 dimensions. Following this, we perform multiple hierarchical clusterings and k-means clusterings to try and find the possible clusters within the dataset. While the labels tell us there are 2, we feel this might be a generalization given the 48,842 datapoints, and strive to see if more good clusters can be formed. Finally, we perform evaluations on the the formed clusters to test their stability and internal and external validity.
-
-Towards the end of the report, we discuss and analyze our results and give a brief conclusion of our findings.
-
-
-# Data
-
-In this dataset, the US Census Bureau surveyed 48,842 people and recorded 15 attributes including their ages, working class, years of education, and income, among other things. This dataset in its current form was compiled by Ronny Kohavi [@osti_421279] and is designed to be used for training and testing various classifiers, with 14 attributes as features and the last attribute, income level, as the class, being either above or below $50,000 USD (50K).
-
-This dataset has been previously used for various statistical analysis purposes, such as clustering aggregation [@Gionis2007], anomaly detection [@Pelleg2004], and mining emerging patterns [@Bailey2002].
-
-This dataset contains files for both training and testing datasets. We will perform preliminary analysis on both, perform PCA on the combined dataset, and perform MDS on only 5000 samples, taken as such that their class division matches the combined dataset population's division. This last one is due to the limitations of the computer being used and is subject to change for the final report.
 
 ## Preliminary Analysis
 
@@ -524,5 +507,221 @@ boxplot(scale(data_frame))
 
 frame_scaled <- scale(frame)
 boxplot(frame_scaled)
+```
+
+```{r}
+
+census_train <- read.csv("Data/census/adult.data.csv", header=TRUE, sep = ",")
+census_test <- read.csv("Data/census/adult.test.csv", header=TRUE, sep = ",")
+census_total <- rbind(census_train, census_test)
+
+# Removing Missing
+df_no_missing <- census_total[!(census_total$workclass==" ?" | 
+                                  census_total$occupation==" ?" | 
+                                  census_total$native.country ==" ?"),]
+# Removing duplicate rows
+df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
+
+# Testing entire dataset
+# data_frame_orig <- data.matrix(df_no_dup)
+data_frame_orig <- df_no_dup
+
+#Removing Final Weight and Categorical Education
+head(data_frame_orig, 5)
+
+data_frame <- data_frame_orig
+
+# data_frame <- scale(data_frame_orig)
+
+# data_frame <- data_frame[,-c(3, 4, 15)]
+data_frame <- data_frame[,-c(3, 4)]
+head(data_frame, 5)
+
+frame_no_outlier <- data.frame(data_frame)
+```
+
+```{r}
+# Individual Removal
+############ For Age
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$age, .25)
+Q3 <- quantile(frame_no_outlier$age, .75)
+IQR <- IQR(frame_no_outlier$age)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$age>= (Q1 - 1.5*IQR) & frame_no_outlier$age<= (Q3 + 1.5*IQR))
+
+############# For Education
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$education.num, .25)
+Q3 <- quantile(frame_no_outlier$education.num, .75)
+IQR <- IQR(frame_no_outlier$education.num)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$education.num>= (Q1 - 1.5*IQR) & frame_no_outlier$education.num<= (Q3 + 1.5*IQR))
+
+############# For capital gain
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$capital.gain, .25)
+Q3 <- quantile(frame_no_outlier$capital.gain, .75)
+IQR <- IQR(frame_no_outlier$capital.gain)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$capital.gain>= (Q1 - 1.5*IQR) & frame_no_outlier$capital.gain<= (Q3 + 1.5*IQR))
+
+############# For capital loss
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$capital.loss, .25)
+Q3 <- quantile(frame_no_outlier$capital.loss, .75)
+IQR <- IQR(frame_no_outlier$capital.loss)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$capital.loss>= (Q1 - 1.5*IQR) & frame_no_outlier$capital.loss<= (Q3 + 1.5*IQR))
+
+############# For hours per week
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$hours.per.week, .25)
+Q3 <- quantile(frame_no_outlier$hours.per.week, .75)
+IQR <- IQR(frame_no_outlier$hours.per.week)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$hours.per.week>= (Q1 - 1.5*IQR) & frame_no_outlier$hours.per.week<= (Q3 + 1.5*IQR))
+
+# Remove the zeroed columns of income gain/loss
+
+data_full_clean <- frame_no_outlier[,-c(9, 10)]
+
+#view row and column count of new data frame
+dim(data_full_clean)
+```
+
+```{r}
+head(data_full_clean, 2)
+
+# Sample 5K points:
+
+
+library(plyr)
+library(dplyr)
+
+# data_full_clean %>% group_by(income) %>% summarize(count=n())
+temp <- data_full_clean %>% group_by(income) %>% sample_n(2500)
+
+temp %>% group_by(income) %>% summarize(count=n()) # Checking if above was done correctly.
+
+sample <- scale(data.matrix(temp))
+
+boxplot(scale(data.matrix(data_frame)))
+
+boxplot(scale(data.matrix(data_full_clean)))
+
+boxplot(sample)
+
+```
+
+```{r, fig.height=10, fig.width=10}
+library(ggbiplot)
+
+pca_data <- prcomp(sample, center = TRUE, scale. = TRUE, retx = TRUE)
+
+#I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
+source("my_functions.R")
+
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = sample[,c(11)])
+
+# To make the arrows more visible
+
+# pca_plot$layers
+pca_plot$layers <- c(pca_plot$layers, pca_plot$layers[[1]])
+# pca_plot$layers
+pca_plot + 
+  labs(color="Income", # Labeling the Legend
+       title = "Plotting Datapoints on the First 2 Principal Components") +
+  theme(plot.title = element_text(hjust = 0.5),
+                     plot.caption=element_text(hjust = 0))
+```
+```{r}
+
+# Loading libraries we will need
+library(cluster)
+library(purrr)
+library(dendextend)
+
+# DIANA TESTING
+
+sample_data <- sample[,-c(11)]
+
+dist_matrix_scaled = dist(sample_data, method = "euclidean")
+
+hier_diana <- diana(dist_matrix_scaled)
+
+
+
+# Divise coefficient
+print(paste0("The divisive coefficient is: ", hier_diana$dc))
+
+# Plotting
+pltree(hier_diana, cex = 0.6, hang = -1, main = "Dendrogram of DIANA")
+
+#DIANA
+cut_diana_2 <- cutree(hier_diana, k = 2)
+cut_diana_6 <- cutree(hier_diana, k = 6)
+
+# DIANA
+cluster_diana_2 = aggregate(sample_data,list(cluster=cut_diana_2),mean)
+cluster_diana_2 <- cluster_diana_2[,-c(1)]
+
+cluster_diana_6 = aggregate(sample_data,list(cluster=cut_diana_6),mean)
+cluster_diana_6 <- cluster_diana_6[,-c(1)]
+
+dend_obj_diana <- as.dendrogram(hier_diana)
+dend_col_diana_2 <- color_branches(dend_obj_diana, k=2)
+dend_col_diana_6 <- color_branches(dend_obj_diana, k=6)
+plot(dend_col_diana_2, main = "Dendrogram (method = DIANA, k=2)")
+plot(dend_col_diana_6, main = "Dendrogram (method = DIANA, k=6)")
+
+library(factoextra)
+
+k_clus_diana_2 <- kmeans(sample_data, centers = cluster_diana_2)
+k_clus_diana_6 <- kmeans(sample_data, centers = cluster_diana_6)
+
+noquote("DIANA Method Initialized, k = 2:")
+print(k_clus_diana_2$size)
+noquote("DIANA Method Initialized, k = 6:")
+print(k_clus_diana_6$size)
+
+fviz_cluster(k_clus_diana_2, data = sample_data)
+fviz_cluster(k_clus_diana_6, data = sample_data)
+
+# kmeans
+
+elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=30)
+elbow_silho <- fviz_nbclust(sample_data, kmeans, method = "silhouette", k.max=30)
+
+elbow_wss
+
+elbow_silho
+
+k_clus_2 <- kmeans(sample_data, centers = 2, nstart = 100)
+k_clus_4 <- kmeans(sample_data, centers = 4, nstart = 100)
+k_clus_5 <- kmeans(sample_data, centers = 5, nstart = 100)
+k_clus_20 <- kmeans(sample_data, centers = 20, nstart = 100)
+
+fviz_cluster(k_clus_2, data = sample_data)
+fviz_cluster(k_clus_4, data = sample_data)
+fviz_cluster(k_clus_5, data = sample_data)
+fviz_cluster(k_clus_20, data = sample_data)
+
+
+```
+
+```{r eval=FALSE, echo=TRUE}
+# To save the selected sample dataset, for reproducibility.
+write.csv(temp ,'5000framev1.csv', row.names = FALSE, col.names = TRUE)
 ```
 
