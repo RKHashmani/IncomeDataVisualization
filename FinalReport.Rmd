@@ -329,7 +329,6 @@ clean_sample <- read.csv("data/5000framev1.csv")
 ```
 
 
-
 ```{r}
 
 head (clean_sample, 5)
@@ -989,7 +988,7 @@ plot(dend_col_diana_5, main = "Dendrogram (method = DIANA, k=5)")
 
 ### K-Means Clustering
 
-First, we try to estimate the best number of clusters, k. Figure \@ref(fig:K-estimate-plot) shows the results of the elbow and silhouette methods. For the elbow method, there seems to be a small bend at k = 10. From the silhouette method, k = 2 seems to be the best choice.
+First, we try to estimate the best number of clusters, k. Figure \@ref(fig:K-estimate-plot) shows the results of the elbow and silhouette methods. For the elbow method, there seems to be a small bend at k = 12. From the silhouette method, k = 2 seems to be the best choice.
 
 ```{r}
 library(factoextra)
@@ -1012,14 +1011,14 @@ elbow_wss
 elbow_silho
 ```
 
-Now, we perform k-means clustering with random initializations for our estimated k = 10 and k = 5, as well as k = 2 (the original clustering) and k = 4 (out of curiosity). In addition, we perform 6 additional k-means clustering using the clusters found from our hierarchical clustering results. Figure \@ref(fig:k-random) shows the best randomly initialized k-means clustering projected onto the first 2 principal components of a PCA, while Figure \@ref(fig:k-hierarchical) shows similar plots for the hierarchical clustering-initialized k-means clusters. Below, we also give the size of each of the clusters within each k-means clustering.
+Now, we perform k-means clustering with random initializations for our estimated k = 12 and k = 5, as well as k = 2 (the original clustering) and k = 4 (out of curiosity). In addition, we perform 6 additional k-means clustering using the clusters found from our hierarchical clustering results. Figure \@ref(fig:k-random) shows the best randomly initialized k-means clustering projected onto the first 2 principal components of a PCA, while Figure \@ref(fig:k-hierarchical) shows similar plots for the hierarchical clustering-initialized k-means clusters. Below, we also give the size of each of the clusters within each k-means clustering.
 
 ```{r K-means-clus, cache=TRUE, warning=FALSE}
 
 k_clus_2 <- kmeans(data_matrix_scaled, centers = 2, nstart = 100)
 k_clus_4 <- kmeans(data_matrix_scaled, centers = 4, nstart = 100)
 k_clus_5 <- kmeans(data_matrix_scaled, centers = 5, nstart = 100)
-k_clus_10 <- kmeans(data_matrix_scaled, centers = 10, nstart = 100)
+k_clus_12 <- kmeans(data_matrix_scaled, centers = 12, nstart = 100)
 
 ```
 
@@ -1044,8 +1043,8 @@ noquote("Randomly Initialized, k = 4:")
 print(k_clus_4$size)
 noquote("Randomly Initialized, k = 5:")
 print(k_clus_5$size)
-noquote("Randomly Initialized, k = 10:")
-print(k_clus_10$size)
+noquote("Randomly Initialized, k = 12:")
+print(k_clus_12$size)
 
 noquote("Ward's Method Initialized, k = 2:")
 print(k_clus_ward_2$size)
@@ -1062,11 +1061,11 @@ print(k_clus_diana_5$size)
 
 ```
 
-```{r k-random, cache=TRUE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the k-means clustering for all 4 randomly initialized cluster options. A PCA was produced and the clusterings were projected onto the first 2 principal components in order to visualize them.", fig.subcap=c('k=2', 'k=4', 'k=5', 'k=10')}
+```{r k-random, cache=TRUE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the k-means clustering for all 4 randomly initialized cluster options. A PCA was produced and the clusterings were projected onto the first 2 principal components in order to visualize them.", fig.subcap=c('k=2', 'k=4', 'k=5', 'k=12')}
 fviz_cluster(k_clus_2, data = data_matrix_scaled)
 fviz_cluster(k_clus_4, data = data_matrix_scaled)
 fviz_cluster(k_clus_5, data = data_matrix_scaled)
-fviz_cluster(k_clus_10, data = data_matrix_scaled)
+fviz_cluster(k_clus_12, data = data_matrix_scaled)
 
 ```
 
@@ -1095,7 +1094,7 @@ clara_3 <- clara(data_matrix_clus, k=3, metric = "euclidean", stand = TRUE, samp
 clara_4 <- clara(data_matrix_clus, k=4, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 clara_5 <- clara(data_matrix_clus, k=5, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 clara_8 <- clara(data_matrix_clus, k=8, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
-clara_10 <- clara(data_matrix_clus, k=10, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_12 <- clara(data_matrix_clus, k=12, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 ```
 
 ```{r Clara-plots, cache=TRUE}
@@ -1105,7 +1104,7 @@ fviz_cluster(clara_3, data = data_matrix_clus)
 fviz_cluster(clara_4, data = data_matrix_clus)
 fviz_cluster(clara_5, data = data_matrix_clus)
 fviz_cluster(clara_8, data = data_matrix_clus)
-fviz_cluster(clara_10, data = data_matrix_clus)
+fviz_cluster(clara_12, data = data_matrix_clus)
 ```
 
 ## Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
@@ -1250,7 +1249,7 @@ library(factoextra)
 
 ### Stability Testing
 
-We first perform the nonparametric bootstrap test for our k-means clustering result for 100 bootstraps and k = 2, 4, 5, and 10 (the best options from the previous results). The results for each option are shown below.
+We first perform the nonparametric bootstrap test for our k-means clustering result for 100 bootstraps and k = 2, 4, 5, and 12 (the best options from the previous results). The results for each option are shown below.
 
 ```{r K-means-boot, tidy=FALSE, cache=TRUE, results="hide"}
 
@@ -1267,9 +1266,9 @@ k_clus_5_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=kmeansCBI,
                         krange=5, seed=786)
 
-k_clus_10_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+k_clus_12_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=kmeansCBI,
-                        krange=10, seed=786)
+                        krange=12, seed=786)
 
 ```
 
@@ -1292,9 +1291,9 @@ clara_5_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
 clara_8_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=claraCBI,
                         k=8, seed=786)
-clara_10_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+clara_12_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=claraCBI,
-                        k=10, seed=786)
+                        k=12, seed=786)
 
 ```
 
@@ -1313,16 +1312,16 @@ __For k = 5__,
 print(k_clus_5_boot)
 ```
 
-__For k = 10__,
+__For k = 12__,
 ```{r}
-print(k_clus_10_boot)
+print(k_clus_12_boot)
 ```
 
 Then, for APN, AD, ADM, and FOM, we use clValid(), which also conveniently does our internal validity tests as well. Below, we show the combined summary for APN, AD, ADM, FOM, and the internal validation measurements, Connectivity, Silhouette Width, and the Dunn Index. Figure \@ref(fig:Stability-plots) graphically shows the results of the APN, AD, ADM, and FOM measurements.
 
 ```{r Multi-valid-test, tidy=FALSE, cache=TRUE, warning=FALSE}
 
-multi_valid_test <- clValid(data_matrix_scaled, c(2, 3, 4, 5, 8, 10),
+multi_valid_test <- clValid(data_matrix_scaled, c(2, 3, 4, 5, 8, 12),
                       clMethods = c("agnes", "diana", "kmeans", "clara", "som" ),
                       validation = c("internal", "stability"),
                       maxitems = 50000,
@@ -1357,7 +1356,7 @@ legend("bottomleft", clusterMethods(multi_valid_test), col=1:5,
 
 ### Internal Validation
 
-The results of the Connectivity, Silhouette Width, and the Dunn Index measurements were given above. Figure \@ref(fig:Internal-plots) graphically shows their results. In addition, since k = 2 seems to be best clustering option (which is also the original number of labels), we plot the Silhouette figures for all of our k = 2 clusterings, both hierarchical, Figure \@ref(fig:Hier-sil-plots), and k-means, Figure \@ref(fig:K-means-sil-plots). In addition, since k-means clustering with k = 10 was the best result for the AD and FOM measurements, we plot its Silhouette plot as well, in Figure \@ref(fig:K-means-10-sil-plot).
+The results of the Connectivity, Silhouette Width, and the Dunn Index measurements were given above. Figure \@ref(fig:Internal-plots) graphically shows their results. In addition, since k = 2 seems to be best clustering option (which is also the original number of labels), we plot the Silhouette figures for all of our k = 2 clusterings, both hierarchical, Figure \@ref(fig:Hier-sil-plots), and k-means, Figure \@ref(fig:K-means-sil-plots). In addition, since k-means clustering with k = 12 was the best result for the AD and FOM measurements, we plot its Silhouette plot as well, in Figure \@ref(fig:K-means-12-sil-plot).
 
 ```{r Internal-plots, tidy=FALSE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the Internal validation tests for all the specified clustering methods and k values.", fig.subcap=c('')}
 
@@ -1421,13 +1420,13 @@ fviz_silhouette(sil_k_diana_2, print.summary = TRUE,
 
 ```
 
-```{r K-means-10-sil-plot, tidy=FALSE, fig.align = "center", fig.cap="Silhouette plot for the randomly initialized k = 10 k-means cluster." }
+```{r K-means-12-sil-plot, tidy=FALSE, fig.align = "center", fig.cap="Silhouette plot for the randomly initialized k = 12 k-means cluster." }
 
-sil_k_rand_10 <- silhouette(k_clus_10$cluster, dist_matrix_scaled)
+sil_k_rand_12 <- silhouette(k_clus_12$cluster, dist_matrix_scaled)
 
-noquote("Cluster Size and Silhouette value for the randomly initialized k-means cluster, k=10.")
-fviz_silhouette(sil_k_rand_10, print.summary = TRUE,
-               main ="Silhouette Plot (k-means Clustering, randomly initialized, k = 10)")
+noquote("Cluster Size and Silhouette value for the randomly initialized k-means cluster, k=12.")
+fviz_silhouette(sil_k_rand_12, print.summary = TRUE,
+               main ="Silhouette Plot (k-means Clustering, randomly initialized, k = 12)")
 
 ```
 
