@@ -633,6 +633,14 @@ head (trsf, 10)
 
 sample <- scale(data.matrix(trsf))
 ```
+```{r}
+clean_sample = read.csv("data/5000framev1.csv")
+
+sample <- clean_sample[,-c(11)]
+
+sample <- scale(data.matrix(sample))
+
+```
 
 
 ```{r, fig.height=10, fig.width=10}
@@ -643,7 +651,7 @@ pca_data <- prcomp(sample, center = TRUE, scale. = TRUE, retx = TRUE)
 #I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
 source("my_functions.R")
 
-pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = sample[,c(85)])
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = clean_sample[,c(11)])
 
 # To make the arrows more visible
 
@@ -665,7 +673,7 @@ library(dendextend)
 
 # DIANA TESTING
 
-sample_data <- sample[,-c(84,85)]
+sample_data <- sample
 
 dist_matrix_scaled = dist(sample_data, method = "euclidean")
 
@@ -711,7 +719,7 @@ fviz_cluster(k_clus_diana_6, data = sample_data)
 
 # kmeans
 
-elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=30)
+elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=100)
 elbow_silho <- fviz_nbclust(sample_data, kmeans, method = "silhouette", k.max=30)
 
 elbow_wss
@@ -730,6 +738,15 @@ fviz_cluster(k_clus_20, data = sample_data)
 
 
 ```
+```{r fig.width=10}
+elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=40)
+elbow_silho <- fviz_nbclust(sample_data, kmeans, method = "silhouette", k.max=30)
+
+elbow_wss
+
+elbow_silho
+```
+
 
 ```{r eval=FALSE, echo=TRUE}
 # To save the selected sample dataset, for reproducibility.
