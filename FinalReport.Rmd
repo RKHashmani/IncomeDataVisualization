@@ -105,11 +105,11 @@ kable(census_train[0:8,8:15], align = "l", row.names = TRUE,
 Now let us find the number of samples for the test and train datasets and the number of features for each sample.
 
 ```{r}
-samples_train = nrow(census_train)
-features_train = ncol(census_train)
+samples_train <- nrow(census_train)
+features_train <- ncol(census_train)
 
-samples_test = nrow(census_test)
-features_test = ncol(census_test)
+samples_test <- nrow(census_test)
+features_test <- ncol(census_test)
 
 sprintf(paste0("The total number of samples in the training set is %s and the number of ",
                "features is %s."), samples_train, features_train)
@@ -163,15 +163,15 @@ census_total <- rbind(census_train, census_test)
 
 #As a Sanity Check:
 
-samples_total = nrow(census_total)
-features_total = ncol(census_total)
+samples_total <- nrow(census_total)
+features_total <- ncol(census_total)
 
 sprintf(paste0("The number of samples in the total set is %s and the number of ",
                "features is %s."), samples_total, features_total)
 
 census_total %>% summarise_all(n_distinct)
 
-range = data.frame(min=sapply(census_total,min),max=sapply(census_total,max))
+range <- data.frame(min=sapply(census_total,min),max=sapply(census_total,max))
 kable(range, align = "l", row.names = TRUE,
       caption = "The Range of Values for all Features", booktabs = T)
 
@@ -231,7 +231,7 @@ df_no_missing <- census_total[!(census_total$workclass==" ?" |
                                   census_total$occupation==" ?" | 
                                   census_total$native.country ==" ?"),]
 # Removing duplicate rows
-data_frame_orig = df_no_missing[!duplicated(df_no_missing), ]
+data_frame_orig <- df_no_missing[!duplicated(df_no_missing), ]
 
 #Removing Final Weight and Categorical Education
 head(data_frame_orig, 5)
@@ -325,7 +325,7 @@ clean_sample %>% group_by(income) %>% summarize(count=n()) # Checking if above w
 ```{r}
 # To read the sampled data
 
-clean_sample = read.csv("data/5000framev1.csv")
+clean_sample <- read.csv("data/100framev1.csv")
 ```
 
 
@@ -364,10 +364,10 @@ __MDS__
 
 Because many MDS algorithms are either $O(n^{3})$ or $O(n^{2})$, we will sample them according to their proportions for the "income" class. Using the combined dataset, we will remove rows with missing data (since we have an ample number of rows, we can afford to delete them) and duplicate data (certain MDS algorithms, such as Sammon's Non-Linear Mapping, do not work if there are 0s present in the distance matrix, so duplicate rows must be removed) and sample 5000 datapoints, making sure that the ratio of "<=50K" to ">50K" is 3.2:1, as averaged in Section 2.1.3. Finally, we will convert it into a data matrix and remove the "income" column, similar to what we did for PCA.
 
-# ```{r Data-prep-mds, cache=TRUE}
+```{r Data-prep-mds, cache=TRUE, eval=FALSE}
 # # Removing rows with missing values
-# df_no_missing <- census_total[!(census_total$workclass==" ?" | 
-#                                   census_total$occupation==" ?" | 
+# df_no_missing <- census_total[!(census_total$workclass==" ?" |
+#                                   census_total$occupation==" ?" |
 #                                   census_total$native.country ==" ?"),]
 # # Removing duplicate rows
 # df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
@@ -376,19 +376,19 @@ Because many MDS algorithms are either $O(n^{3})$ or $O(n^{2})$, we will sample 
 # # Removing the excess >50K class datapoints in order to make the sample
 # # representative of the original dataset.
 # sample_frame <-temp_df[1:(nrow(temp_df) - 70),]
-# 
+#
 # data_matrix_orig_mds <- data.matrix(sample_frame)
-# 
+#
 # data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
 # sample_number <- nrow(data_matrix_mds)
 # print(paste0("The number of samples selected is: ", sample_number))
-# 
-# ```
-# 
-# ```{r eval=FALSE, echo=TRUE}
+
+```
+
+```{r eval=FALSE, echo=TRUE}
 # # To save the selected sample dataset, for reproducibility.
 # write.csv(sample_frame,'5000frame.csv', row.names = TRUE, col.names = TRUE)
-# ```
+```
 
 ```{r}
 # To Remove Class Labels
@@ -451,7 +451,7 @@ print(paste0("The number of samples selected is: ", sample_number))
 # Setting Seed to allow reproducible results
 set.seed(786) # Setting Seed
 
-data_matrix_scaled = data_matrix_clus # It's already scaled.
+data_matrix_scaled <- data_matrix_clus # It's already scaled.
 ```
 
 
@@ -668,7 +668,7 @@ kable(dist_matrix_display[0:8,0:8], align = "l", row.names = TRUE,
 Figure \@ref(fig:classic-MDS) shows the classic MDS applied on the distance matrix.
 
 ```{r Classic, cache=TRUE}
-classic_mds = cmdscale(dist_matrix, k = 2)
+classic_mds <- cmdscale(dist_matrix, k = 2)
 ```
 
 ```{r classic-MDS,  fig.cap="Plot of Classic Torgerson’s Metric MDS applied on the distance matrix."}
@@ -862,7 +862,7 @@ library(dendextend)
 
 ```{r Dist-matrix-scaled, cache=TRUE}
 
-dist_matrix_scaled = dist(data_matrix_scaled, method = "euclidean")
+dist_matrix_scaled <- dist(data_matrix_scaled, method = "euclidean")
 
 ```
 
@@ -943,24 +943,24 @@ cut_diana_5 <- cutree(hier_diana, k = 5)
 ```{r cache=TRUE}
 
 # Ward
-cluster_ward_2 = aggregate(data_matrix_scaled,list(cluster=cut_ward_2),mean)
+cluster_ward_2 <- aggregate(data_matrix_scaled,list(cluster=cut_ward_2),mean)
 cluster_ward_2 <- cluster_ward_2[,-c(1)]
 
-cluster_ward_5 = aggregate(data_matrix_scaled,list(cluster=cut_ward_5),mean)
+cluster_ward_5 <- aggregate(data_matrix_scaled,list(cluster=cut_ward_5),mean)
 cluster_ward_5 <- cluster_ward_5[,-c(1)]
 
 # GAverage
-cluster_gave_2 = aggregate(data_matrix_scaled,list(cluster=cut_gave_2),mean)
+cluster_gave_2 <- aggregate(data_matrix_scaled,list(cluster=cut_gave_2),mean)
 cluster_gave_2 <- cluster_gave_2[,-c(1)]
 
-cluster_gave_5 = aggregate(data_matrix_scaled,list(cluster=cut_gave_5),mean)
+cluster_gave_5 <- aggregate(data_matrix_scaled,list(cluster=cut_gave_5),mean)
 cluster_gave_5 <- cluster_gave_5[,-c(1)]
 
 # DIANA
-cluster_diana_2 = aggregate(data_matrix_scaled,list(cluster=cut_diana_2),mean)
+cluster_diana_2 <- aggregate(data_matrix_scaled,list(cluster=cut_diana_2),mean)
 cluster_diana_2 <- cluster_diana_2[,-c(1)]
 
-cluster_diana_5 = aggregate(data_matrix_scaled,list(cluster=cut_diana_5),mean)
+cluster_diana_5 <- aggregate(data_matrix_scaled,list(cluster=cut_diana_5),mean)
 cluster_diana_5 <- cluster_diana_5[,-c(1)]
 
 ```
@@ -989,34 +989,37 @@ plot(dend_col_diana_5, main = "Dendrogram (method = DIANA, k=5)")
 
 ### K-Means Clustering
 
-First, we try to estimate the best number of clusters, k. Figure \@ref(fig:K-estimate-plot) shows the results of the elbow and silhouette methods. For the elbow method, there does not seem to be any apparent "elbow" as the data seems to follow a smooth curve. In an extended version of this graph (not shown), there was no elbow as far as 50 clusters. Nonetheless, we see a slight bend around k = 20 mark and will therefore take k = 20 as one cluster size option. From the silhouette method, k = 5 seems to be the best choice.
+First, we try to estimate the best number of clusters, k. Figure \@ref(fig:K-estimate-plot) shows the results of the elbow and silhouette methods. For the elbow method, there seems to be a small bend at k = 10. From the silhouette method, k = 2 seems to be the best choice.
 
 ```{r}
 library(factoextra)
 ```
 
 
-```{r K-estimate, cache=TRUE}
+```{r K-estimate, warning=FALSE, cache=TRUE}
 
-elbow_wss <- fviz_nbclust(data_matrix_scaled, kmeans, method = "wss", k.max=30)
-elbow_silho <- fviz_nbclust(data_matrix_scaled, kmeans, method = "silhouette", k.max=30)
+elbow_wss <- fviz_nbclust(data_matrix_scaled, kmeans, method = "wss", k.max=40)
+elbow_silho <- fviz_nbclust(data_matrix_scaled, kmeans, method = "silhouette", k.max=40)
 
 ```
 
-```{r K-estimate-plot, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Plots to help estimate the number of clusters, k, to select for k-means clustering, using the elbow method (a) and the silhouette method (b).", fig.subcap=c('Total Within Sum of Squares vs. different number of clusters.', 'Average silhouette width vs. different number of clusters.')}
+```{r K-estimate-plot, fig.width=10, warning=FALSE,  fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Plots to help estimate the number of clusters, k, to select for k-means clustering, using the elbow method (a) and the silhouette method (b).", fig.subcap=c('Total Within Sum of Squares vs. different number of clusters.', 'Average silhouette width vs. different number of clusters.')}
+
+##### CHECK CACHE FILE OUTPUT LOOK. IS IT MUSHED?
+
 elbow_wss
 
 elbow_silho
 ```
 
-Now, we perform k-means clustering with random initializations for our estimated k = 20 and k = 5, as well as k = 2 (the original clustering) and k = 4 (out of curiosity). In addition, we perform 6 additional k-means clustering using the clusters found from our hierarchical clustering results. Figure \@ref(fig:k-random) shows the best randomly initialized k-means clustering projected onto the first 2 principal components of a PCA, while Figure \@ref(fig:k-hierarchical) shows similar plots for the hierarchical clustering-initialized k-means clusters. Below, we also give the size of each of the clusters within each k-means clustering.
+Now, we perform k-means clustering with random initializations for our estimated k = 10 and k = 5, as well as k = 2 (the original clustering) and k = 4 (out of curiosity). In addition, we perform 6 additional k-means clustering using the clusters found from our hierarchical clustering results. Figure \@ref(fig:k-random) shows the best randomly initialized k-means clustering projected onto the first 2 principal components of a PCA, while Figure \@ref(fig:k-hierarchical) shows similar plots for the hierarchical clustering-initialized k-means clusters. Below, we also give the size of each of the clusters within each k-means clustering.
 
 ```{r K-means-clus, cache=TRUE, warning=FALSE}
 
 k_clus_2 <- kmeans(data_matrix_scaled, centers = 2, nstart = 100)
 k_clus_4 <- kmeans(data_matrix_scaled, centers = 4, nstart = 100)
 k_clus_5 <- kmeans(data_matrix_scaled, centers = 5, nstart = 100)
-k_clus_20 <- kmeans(data_matrix_scaled, centers = 20, nstart = 100)
+k_clus_10 <- kmeans(data_matrix_scaled, centers = 10, nstart = 100)
 
 ```
 
@@ -1041,8 +1044,8 @@ noquote("Randomly Initialized, k = 4:")
 print(k_clus_4$size)
 noquote("Randomly Initialized, k = 5:")
 print(k_clus_5$size)
-noquote("Randomly Initialized, k = 20:")
-print(k_clus_20$size)
+noquote("Randomly Initialized, k = 10:")
+print(k_clus_10$size)
 
 noquote("Ward's Method Initialized, k = 2:")
 print(k_clus_ward_2$size)
@@ -1059,11 +1062,11 @@ print(k_clus_diana_5$size)
 
 ```
 
-```{r k-random, cache=TRUE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the k-means clustering for all 4 randomly initialized cluster options. A PCA was produced and the clusterings were projected onto the first 2 principal components in order to visualize them.", fig.subcap=c('k=2', 'k=4', 'k=5', 'k=20')}
+```{r k-random, cache=TRUE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the k-means clustering for all 4 randomly initialized cluster options. A PCA was produced and the clusterings were projected onto the first 2 principal components in order to visualize them.", fig.subcap=c('k=2', 'k=4', 'k=5', 'k=10')}
 fviz_cluster(k_clus_2, data = data_matrix_scaled)
 fviz_cluster(k_clus_4, data = data_matrix_scaled)
 fviz_cluster(k_clus_5, data = data_matrix_scaled)
-fviz_cluster(k_clus_20, data = data_matrix_scaled)
+fviz_cluster(k_clus_10, data = data_matrix_scaled)
 
 ```
 
@@ -1092,90 +1095,69 @@ clara_3 <- clara(data_matrix_clus, k=3, metric = "euclidean", stand = TRUE, samp
 clara_4 <- clara(data_matrix_clus, k=4, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 clara_5 <- clara(data_matrix_clus, k=5, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 clara_8 <- clara(data_matrix_clus, k=8, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
-clara_20 <- clara(data_matrix_clus, k=20, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
+clara_10 <- clara(data_matrix_clus, k=10, metric = "euclidean", stand = TRUE, samples = 1000, pamLike = TRUE)
 ```
 
-```{r Clara-plots}
+```{r Clara-plots, cache=TRUE}
 print (clara_2)
 fviz_cluster(clara_2, data = data_matrix_clus)
 fviz_cluster(clara_3, data = data_matrix_clus)
 fviz_cluster(clara_4, data = data_matrix_clus)
 fviz_cluster(clara_5, data = data_matrix_clus)
 fviz_cluster(clara_8, data = data_matrix_clus)
-fviz_cluster(clara_20, data = data_matrix_clus)
+fviz_cluster(clara_10, data = data_matrix_clus)
 ```
 
-### Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
+## Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
 
 ```{r}
 library(kohonen)
 
 ```
 
-```{r}
-grid.size <- ceiling(sample_number ^ (1/2.5))
-som.grid <- somgrid(xdim = grid.size, ydim = grid.size, topo = 'hexagonal', toroidal = T)
+```{r SOM, cache=TRUE}
+grid_size <- ceiling(sample_number ^ (1/2.5))
+som_grid <- somgrid(xdim = grid_size, ydim = grid_size, topo = 'hexagonal', toroidal = T)
 
-som.model <- som(data_matrix_scaled, grid = som.grid, keep.data = TRUE)
+som_model <- som(data_matrix_scaled, grid = som_grid, keep.data = TRUE)
 ```
 
-```{r}
-plot(som.model, type="changes")
+```{r SOM-plots1, cache=TRUE}
+plot(som_model, type="changes")
 
-plot(som.model, type="count", heatkey = TRUE)
+plot(som_model, type="count", heatkey = TRUE)
 
-plot(som.model, type="dist.neighbours")
+plot(som_model, type="dist.neighbours")
 
-plot(som.model, type="codes")
+plot(som_model, type="codes")
 
 ```
-```{r, fig.height=10, fig.width=10}
-plot(som.model)
+```{r SOM-Plots2, fig.height=10, fig.width=10, cache=TRUE}
+plot(som_model)
 ```
 
-```{r}
+```{r eval=FALSE}
 ## extract some data to make it easier to use
 
-som.events <- som.model$codes[[1]]
+som.events <- som_model$codes[[1]]
 
 som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255) # DID NOT WORK
 
 som.dist <- as.matrix(dist(som.events))
 ```
 
-
-```{r}
-plot(som.model, # DID NOT WORK
-     type = 'mapping',
-     bg = som.events.colors[sample.int(length(som.events.colors), size = length(som.events.colors))],
-     keepMargins = F,
-     col = NA,
-     main = '')
-```
-
-```{r}
-## generate a plot after training. DID NOT WORK
-
-plot(som.model,
-     type = 'mapping',
-     bg = som.events.colors,
-     keepMargins = F,
-     col = NA,
-     main = '')
-```
-
-```{r}
-#WORKS
-mydata <- som.model$codes 
+```{r eval=FALSE}
+#WORKS ????????????
+mydata <- som_model$codes 
 wss <- (nrow(mydata)-1)*sum(apply(mydata,2,var)) 
-for (i in 2:15) {
+for (i in 2:11) {
   wss[i] <- sum(kmeans(mydata, centers=i)$withinss)
 }
 plot(wss)
 ```
 ```{r}
 par(mfrow=c(1,1)) # back to one plot
-clusterdata <- getCodes(som.model)
+clusterdata <- getCodes(som_model)
 wss <- (nrow(clusterdata)-1)*sum(apply(clusterdata,2,var))
 for (i in 1:30) wss[i] <- sum(kmeans(clusterdata,
                                      centers=i)$withinss) #i range from 1 to no of nodes -1...
@@ -1191,7 +1173,7 @@ plot(1:30, wss, type="b", xlab="Number of Clusters", #match i
 k = 2
 set.seed(786) #for reproducability
 fit_kmeans <- kmeans(clusterdata[,1:4], k) #3 clusters are used, as indicated by the wss development.
-cl_assignmentk <- fit_kmeans$cluster[som.model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
+cl_assignmentk <- fit_kmeans$cluster[som_model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
 #but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
 clustersKm <- cl_assignmentk #back to original data.
 ```
@@ -1209,7 +1191,7 @@ rect.hclust(fit_hac, k, border="grey")
 
 ```{r}
 #WORKS
-cl_assignmenth <- HACgroups[som.model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
+cl_assignmenth <- HACgroups[som_model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
 #but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
 clustersHac <- cl_assignmenth #back to original data.
 ```
@@ -1236,18 +1218,18 @@ kindofpretty2 <- c("#B39B66", "#3B3828", "#FAE6B9", "#F2F2F2", "#F58B00", "#F5D8
 ```
 
 
-```{r , fig.height=10, fig.width=10}
+```{r , eval=FALSE, fig.height=10, fig.width=10}
 #WORKS
-colour4 <- tricolor(som.model$grid, phi = c(pi/8, 6, -pi/6), offset = 0.1)
+colour4 <- tricolor(som_model$grid, phi = c(pi/8, 6, -pi/6), offset = 0.1)
 par(mfrow=c(1,1))
-plot(som.model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,15],col=contrast[trueccolor])
-add.cluster.boundaries(som.model, fit_kmeans$cluster, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
+plot(som_model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,11],col=contrast[trueccolor])
+add.cluster.boundaries(som_model, fit_kmeans$cluster, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
 ```
 
 ```{r , fig.height=10, fig.width=10}
 par(mfrow=c(1,1))
-plot(som.model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,15],col=contrast[haccolor])
-add.cluster.boundaries(som.model, HACgroups, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
+plot(som_model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,11],col=contrast[haccolor])
+add.cluster.boundaries(som_model, HACgroups, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
 ```
 
 
@@ -1268,7 +1250,7 @@ library(factoextra)
 
 ### Stability Testing
 
-We first perform the nonparametric bootstrap test for our k-means clustering result for 100 bootstraps and k = 2, 4, 5, and 20 (the best options from the previous results). The results for each option are shown below.
+We first perform the nonparametric bootstrap test for our k-means clustering result for 100 bootstraps and k = 2, 4, 5, and 10 (the best options from the previous results). The results for each option are shown below.
 
 ```{r K-means-boot, tidy=FALSE, cache=TRUE, results="hide"}
 
@@ -1285,25 +1267,40 @@ k_clus_5_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=kmeansCBI,
                         krange=5, seed=786)
 
-k_clus_20_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+k_clus_10_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=kmeansCBI,
-                        krange=20, seed=786)
+                        krange=10, seed=786)
 
 ```
 
 
 ### Maybe Not Needed:
-```{r Clara-boot, cache=TRUE}
+```{r Clara-boot, cache=TRUE, results="hide"}
 
 clara_2_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
                         clustermethod=claraCBI,
-                        krange=2, seed=786)
+                        k=2, seed=786)
+clara_3_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        k=3, seed=786)
+clara_4_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        k=4, seed=786)
+clara_5_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        k=5, seed=786)
+clara_8_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        k=8, seed=786)
+clara_10_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
+                        clustermethod=claraCBI,
+                        k=10, seed=786)
 
 ```
 
 __For k = 2__,
 ```{r}
-print(k_clus_2_boot)
+print(clara_2_boot)
 ```
 
 __For k = 4__,
@@ -1316,16 +1313,16 @@ __For k = 5__,
 print(k_clus_5_boot)
 ```
 
-__For k = 20__,
+__For k = 10__,
 ```{r}
-print(k_clus_20_boot)
+print(k_clus_10_boot)
 ```
 
 Then, for APN, AD, ADM, and FOM, we use clValid(), which also conveniently does our internal validity tests as well. Below, we show the combined summary for APN, AD, ADM, FOM, and the internal validation measurements, Connectivity, Silhouette Width, and the Dunn Index. Figure \@ref(fig:Stability-plots) graphically shows the results of the APN, AD, ADM, and FOM measurements.
 
 ```{r Multi-valid-test, tidy=FALSE, cache=TRUE, warning=FALSE}
 
-multi_valid_test <- clValid(data_matrix_scaled, c(2, 3, 4, 5, 8, 20),
+multi_valid_test <- clValid(data_matrix_scaled, c(2, 3, 4, 5, 8, 10),
                       clMethods = c("agnes", "diana", "kmeans", "clara", "som" ),
                       validation = c("internal", "stability"),
                       maxitems = 50000,
@@ -1341,40 +1338,40 @@ summary(multi_valid_test)
 ```{r Stability-plots, tidy=FALSE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the stability validation tests for all the specified clustering methods and k values.", fig.subcap=c('')}
 
 plot(multi_valid_test, measure=c("APN"), legend=FALSE, lwd = 3.5)
-legend("bottomright", clusterMethods(multi_valid_test),col=1:3,
-       lty=1:3, pch=paste(1:3), lwd = 3.5)
+legend("bottomright", clusterMethods(multi_valid_test),col=1:5,
+       lty=1:5, pch=paste(1:5), lwd = 3.5)
 
 plot(multi_valid_test, measure=c("AD"), legend=FALSE, lwd = 3.5)
-legend("bottomleft", clusterMethods(multi_valid_test), col=1:3,
-       lty=1:3, pch=paste(1:3), lwd = 3.5)
+legend("bottomleft", clusterMethods(multi_valid_test), col=1:5,
+       lty=1:5, pch=paste(1:5), lwd = 3.5)
 
 plot(multi_valid_test, measure=c("ADM"), legend=FALSE, lwd = 3.5)
-legend("bottomright", clusterMethods(multi_valid_test), col=1:3,
-       lty=1:3, pch=paste(1:3), lwd = 3.5)
+legend("bottomright", clusterMethods(multi_valid_test), col=1:5,
+       lty=1:5, pch=paste(1:5), lwd = 3.5)
 
 plot(multi_valid_test, measure=c("FOM"), legend=FALSE, lwd = 3.5)
-legend("bottomleft", clusterMethods(multi_valid_test), col=1:3,
-       lty=1:3, pch=paste(1:3), lwd = 3.5)
+legend("bottomleft", clusterMethods(multi_valid_test), col=1:5,
+       lty=1:5, pch=paste(1:5), lwd = 3.5)
 
 ```
 
 ### Internal Validation
 
-The results of the Connectivity, Silhouette Width, and the Dunn Index measurements were given above. Figure \@ref(fig:Internal-plots) graphically shows their results. In addition, since k = 2 seems to be best clustering option (which is also the original number of labels), we plot the Silhouette figures for all of our k = 2 clusterings, both hierarchical, Figure \@ref(fig:Hier-sil-plots), and k-means, Figure \@ref(fig:K-means-sil-plots). In addition, since k-means clustering with k = 20 was the best result for the AD and FOM measurements, we plot its Silhouette plot as well, in Figure \@ref(fig:K-means-20-sil-plot).
+The results of the Connectivity, Silhouette Width, and the Dunn Index measurements were given above. Figure \@ref(fig:Internal-plots) graphically shows their results. In addition, since k = 2 seems to be best clustering option (which is also the original number of labels), we plot the Silhouette figures for all of our k = 2 clusterings, both hierarchical, Figure \@ref(fig:Hier-sil-plots), and k-means, Figure \@ref(fig:K-means-sil-plots). In addition, since k-means clustering with k = 10 was the best result for the AD and FOM measurements, we plot its Silhouette plot as well, in Figure \@ref(fig:K-means-10-sil-plot).
 
 ```{r Internal-plots, tidy=FALSE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Results of the Internal validation tests for all the specified clustering methods and k values.", fig.subcap=c('')}
 
 plot(multi_valid_test, measure=c("Connectivity"), legend=FALSE, lwd = 3.5)
-legend("topleft", clusterMethods(multi_valid_test), col=1:3, lty=1:3,
-       pch=paste(1:3), lwd = 3.5)
+legend("topleft", clusterMethods(multi_valid_test), col=1:5, lty=1:5,
+       pch=paste(1:5), lwd = 3.5)
 
 plot(multi_valid_test, measure=c("Dunn"), legend=FALSE, lwd = 3.5)
-legend("topright", clusterMethods(multi_valid_test), col=1:3, lty=1:3,
-       pch=paste(1:3), lwd = 3.5)
+legend("topright", clusterMethods(multi_valid_test), col=1:5, lty=1:5,
+       pch=paste(1:5), lwd = 3.5)
 
 plot(multi_valid_test, measure=c("Silhouette"), legend=FALSE, lwd = 3.5)
-legend("topright", clusterMethods(multi_valid_test), col=1:3, lty=1:3,
-       pch=paste(1:3), lwd = 3.5)
+legend("topright", clusterMethods(multi_valid_test), col=1:5, lty=1:5,
+       pch=paste(1:5), lwd = 3.5)
 
 
 ```
@@ -1424,13 +1421,13 @@ fviz_silhouette(sil_k_diana_2, print.summary = TRUE,
 
 ```
 
-```{r K-means-20-sil-plot, tidy=FALSE, fig.align = "center", fig.cap="Silhouette plot for the randomly initialized k = 20 k-means cluster." }
+```{r K-means-10-sil-plot, tidy=FALSE, fig.align = "center", fig.cap="Silhouette plot for the randomly initialized k = 10 k-means cluster." }
 
-sil_k_rand_20 <- silhouette(k_clus_20$cluster, dist_matrix_scaled)
+sil_k_rand_10 <- silhouette(k_clus_10$cluster, dist_matrix_scaled)
 
-noquote("Cluster Size and Silhouette value for the randomly initialized k-means cluster, k=20.")
-fviz_silhouette(sil_k_rand_20, print.summary = TRUE,
-               main ="Silhouette Plot (k-means Clustering, randomly initialized, k = 20)")
+noquote("Cluster Size and Silhouette value for the randomly initialized k-means cluster, k=10.")
+fviz_silhouette(sil_k_rand_10, print.summary = TRUE,
+               main ="Silhouette Plot (k-means Clustering, randomly initialized, k = 10)")
 
 ```
 
@@ -1440,6 +1437,9 @@ Finally, we perform external validation and determine the Rand Index for all of 
 
 ```{r}
 orig_cluster <- data_matrix_orig_mds[,c(11)]
+
+sample_frame <- data.frame(sample)
+
 ```
 
 Then we show the clustering size comparison with the original class size and the Rand Index for each k = 2 clustering, with a summary shown in Table 9:
@@ -1630,9 +1630,9 @@ fviz_cluster(k_clus_3, data = data_matrix_scaled)
 ```
 
 
-For the k-means cluster estimation, as discussed previously, the elbow method's plot, Figure \@ref(fig:K-estimate-plot), does not show any apparent bend. Nonetheless, given the shape of the plot, we can estimate a slight bend around k = 20. For the silhouette method, while k = 5 seems to be the optimal choice, it should be noted that other values of k also came close, such as k = 3.
+For the k-means cluster estimation, as discussed previously, the elbow method's plot, Figure \@ref(fig:K-estimate-plot), does not show any apparent bend. Nonetheless, given the shape of the plot, we can estimate a slight bend around k = 10. For the silhouette method, while k = 5 seems to be the optimal choice, it should be noted that other values of k also came close, such as k = 3.
 
-Looking at the plots for the randomly initialized k-means clustering, Figure \@ref(fig:k-random), we can see that there is a lot of overlap between the clusters, especially for k values 4, 5, and 20. For k = 4, three clusters can easily be seen, with a 4th one hidden behind. This seems to imply that k = 3 might be a better choice. k = 5 has 4 apparent cluster shapes with one hidden and k = 20 has no discernible cluster shapes at all.
+Looking at the plots for the randomly initialized k-means clustering, Figure \@ref(fig:k-random), we can see that there is a lot of overlap between the clusters, especially for k values 4, 5, and 10. For k = 4, three clusters can easily be seen, with a 4th one hidden behind. This seems to imply that k = 3 might be a better choice. k = 5 has 4 apparent cluster shapes with one hidden and k = 10 has no discernible cluster shapes at all.
 
 Looking at the plots for the hierarchical clusters-initialized k-means clustering, Figure \@ref(fig:k-hierarchical), we once again see a lot of overlap in the k = 5 clustering. Ward's method-initialized k = 5 clustering, Figure \@ref(fig:k-hierarchical) (b), shows 3 major clusters which seem distinct enough, overlapped by a 4th, blue cluster. There is also an additional purple cluster on the top right that could be attributed to outliers (however, since our sampled dataset is only 5000 out of 48,842 datapoints, this could very well be another cluster). Taking this into consideration, there is a strong possibility of k = 3 being the correct number of clusters. We can see a randomly initialized k-means clustering with k = 3 plotted in Figure \@ref(fig:K-8-hier) (c), however there is still a cluster hidden beneath two others. For the Generalized Average-initialized and DIANA-initialized k-means clusterings, Figures \@ref(fig:k-hierarchical) (d) and \@ref(fig:k-hierarchical) (f) respectively, 2 overall clusters can easily be seen but the others overlap too much for any discernible guess at the correct number of k.
 
@@ -1640,11 +1640,11 @@ Interestingly, we can see that for k = 2, the Generalized Average-initialized an
 
 ## Validation of Clusterings
 
-From the stability tests, for the nonparametric bootstrap method, we can see that k = 2 had the highest clusterwise Jaccard bootstrap mean for its clusters, the lowest number of dissolved clusters, on average, and its number of recovered clusters closest to the number of bootstraps chosen (100). This indicates that k = 2 clustering is the most stable one given this test. For APN and ADM tests, the DIANA hierarchical clustering with cutoff at k = 2 was the most stable clustering, with values very close to 0 (0.0068 and 0.0323 respectively). However, for the AD and FOM tests, the randomly initialized, k = 20 k-means clustering was more stable, but with slightly larger values (3.4642 and 0.9514, respectively). This indicates that k = 2 clusters and k = 20 clusters seem to be at a tie with respect to the last 4 stability tests.
+From the stability tests, for the nonparametric bootstrap method, we can see that k = 2 had the highest clusterwise Jaccard bootstrap mean for its clusters, the lowest number of dissolved clusters, on average, and its number of recovered clusters closest to the number of bootstraps chosen (100). This indicates that k = 2 clustering is the most stable one given this test. For APN and ADM tests, the DIANA hierarchical clustering with cutoff at k = 2 was the most stable clustering, with values very close to 0 (0.0068 and 0.0323 respectively). However, for the AD and FOM tests, the randomly initialized, k = 10 k-means clustering was more stable, but with slightly larger values (3.4642 and 0.9514, respectively). This indicates that k = 2 clusters and k = 10 clusters seem to be at a tie with respect to the last 4 stability tests.
 
 For all of the internal validation tests, Connectivity, Dunn Index, and Silhouette Width, the DIANA hierarchical clustering with cutoff at k = 2 had the best scores (0.0000, 0.6309, 0.6581, respectively). Thus, 2 clusters seem to be the best with respect to internal validation measures. 
 
-Since we can visualize Silhouette plots, and we know k = 2 seems to be the ideal clustering size, Figures \@ref(fig:Hier-sil-plots) and \@ref(fig:K-means-sil-plots) show the Silhouettes of all of our k = 2 clusterings, both hierarchical and k-means. The DIANA and GAveraged hierarchical plots, Figures \@ref(fig:Hier-sil-plots) (a) and (c) seem to be identical, while the Ward's Method hierarchical plot, Figure \@ref(fig:Hier-sil-plots) (b) seems to have some negative values, indicating that some samples might have been assigned to the wrong cluster. The DIANA and GAveraged initialized k-means silhouettes, Figures \@ref(fig:K-means-sil-plots) (c) and (d),  also seem to be identical, while (a) and (b) have some negative values again. The k=20 k-means clustering's Silhouette was also plotted, Figure \@ref(fig:K-means-20-sil-plot), because it had the best AD and FOM test scores. However, we can see numerous negative values, indicating that this cluster numbering might not be ideal.
+Since we can visualize Silhouette plots, and we know k = 2 seems to be the ideal clustering size, Figures \@ref(fig:Hier-sil-plots) and \@ref(fig:K-means-sil-plots) show the Silhouettes of all of our k = 2 clusterings, both hierarchical and k-means. The DIANA and GAveraged hierarchical plots, Figures \@ref(fig:Hier-sil-plots) (a) and (c) seem to be identical, while the Ward's Method hierarchical plot, Figure \@ref(fig:Hier-sil-plots) (b) seems to have some negative values, indicating that some samples might have been assigned to the wrong cluster. The DIANA and GAveraged initialized k-means silhouettes, Figures \@ref(fig:K-means-sil-plots) (c) and (d),  also seem to be identical, while (a) and (b) have some negative values again. The k=10 k-means clustering's Silhouette was also plotted, Figure \@ref(fig:K-means-10-sil-plot), because it had the best AD and FOM test scores. However, we can see numerous negative values, indicating that this cluster numbering might not be ideal.
 
 Finally, for external validation tests, Table 9 shows that almost all of the clustering options have poor scores that are very close to 0, with some (Ward's Method hierarchical and its initialized k-means clustering) being negative values. This tells us that there is a poor agreement between these k = 2 clusterings and the original labeling of our dataset. The largest value is only 0.0219, shared by the DIANA and GAveraged hierarchical clusterings as well as their initialized k-means clustering. 
 
@@ -1670,7 +1670,7 @@ While MDS did not give us a very good visual description of our dataset with the
 
 Hierarchical clustering indicated that our data might have too many outliers and k = 8 was inferred to be the ideal number of clustering. While the elbow method was not fruitful, the silhouette method indicated k = 5 as ideal, which is in line with our PCA clustering suggestion for the whole dataset. However, actually plotting the k-means clusters showed that k = 3 might be the better choice.
 
-Validation of our various clusters reinforced the idea that k = 4, 5, and 20 might not be good fits for our sampled dataset. While our k = 2 clusters seem to have the best scores, particularly the DIANA hierarchical clustering, we can see that this is mostly likely due to the clustering of outliers versus non-outliers, which is not fruitful for our case.
+Validation of our various clusters reinforced the idea that k = 4, 5, and 10 might not be good fits for our sampled dataset. While our k = 2 clusters seem to have the best scores, particularly the DIANA hierarchical clustering, we can see that this is mostly likely due to the clustering of outliers versus non-outliers, which is not fruitful for our case.
 
 For the final report, outliers can be removed before clustering is applied. In addition to the k = 2 clustering, clusterings based on the previous hierarchical, elbow method, and k-means results, namely, k = 8, 5, and 3, can be redone and validated as well in order to get an better idea of how many possible clusters our dataset contains.
 
