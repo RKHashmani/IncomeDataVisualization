@@ -609,7 +609,6 @@ head(data_full_clean, 2)
 library(plyr)
 library(dplyr)
 
-# data_full_clean %>% group_by(income) %>% summarize(count=n())
 temp <- data_full_clean %>% group_by(income) %>% sample_n(2500)
 
 temp %>% group_by(income) %>% summarize(count=n()) # Checking if above was done correctly.
@@ -624,6 +623,18 @@ boxplot(sample)
 
 ```
 
+```{r}
+library(caret)
+
+dmy <- dummyVars(" ~ .", data = temp)
+trsf <- data.frame(predict(dmy, newdata = temp))
+
+head (trsf, 10)
+
+sample <- scale(data.matrix(trsf))
+```
+
+
 ```{r, fig.height=10, fig.width=10}
 library(ggbiplot)
 
@@ -632,7 +643,7 @@ pca_data <- prcomp(sample, center = TRUE, scale. = TRUE, retx = TRUE)
 #I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
 source("my_functions.R")
 
-pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = sample[,c(11)])
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = sample[,c(85)])
 
 # To make the arrows more visible
 
@@ -654,7 +665,7 @@ library(dendextend)
 
 # DIANA TESTING
 
-sample_data <- sample[,-c(11)]
+sample_data <- sample[,-c(84,85)]
 
 dist_matrix_scaled = dist(sample_data, method = "euclidean")
 
