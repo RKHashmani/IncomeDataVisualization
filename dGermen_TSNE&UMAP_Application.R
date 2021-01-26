@@ -34,7 +34,7 @@ write.csv(data5000_OHE,'5000frameOHE.csv', row.names = TRUE, col.names = TRUE)
 # UMAP and t-SNE Application
 ## UMAP Application and Plotting
 ## n_neighbors 5-50 , 10-15 
-## min_dist 0.001-0.5 , 0.1
+## min_dist 0.001-0.5 , 0.1f
 ## def config 15, 0.1
 UMAP_5000 = umap(data_matrix)
 df = data.frame(X = UMAP_5000[,1],

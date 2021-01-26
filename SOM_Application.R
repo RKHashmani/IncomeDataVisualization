@@ -37,3 +37,7 @@ df = data.frame(X = som_data$code.sum$x,
                 Cell_Representation_Count = som_data$code.sum$nobs)
 ggplot(data = df, aes(x = X ,y = Y)) +
   geom_point(aes(size = Cell_Representation_Count))
+
+# Spectral Clustering
+
+
