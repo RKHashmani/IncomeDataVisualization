@@ -53,7 +53,7 @@ plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
 name = paste("T_T ",i,"test.png")
 png(name)
 print(plot)
-dev.off()"
+dev.off()
 
 # Hyperparameter tuning
 min_dist_1 = seq(0.001,0.2,0.01)
