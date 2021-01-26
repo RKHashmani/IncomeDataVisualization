@@ -73,7 +73,7 @@ Towards the end of the report, we discuss and analyze our results and give a bri
 
 # Data
 
-In this dataset, the US Census Bureau surveyed 48,842 people and recorded 15 attributes including their ages, working class, years of education, and income, among other things. This dataset in its current form was compiled by Ronny Kohavi [@osti_421279] and is designed to be used for training and testing various classifiers, with 14 attributes as features and the last attribute, income level, as the class, being either above or below $50,000 USD (50K).
+In this dataset, the US Census Bureau surveyed 48,842 people and recorded 15 attributes including their ages, working class, years of education, and income, among other things. This dataset in its current form was compiled by Ronny Kohavi [@Kohavi1996] and is designed to be used for training and testing various classifiers, with 14 attributes as features and the last attribute, income level, as the class, being either above or below $50,000 USD (50K).
 
 This dataset has been previously used for various statistical analysis purposes, such as clustering aggregation [@Gionis2007], anomaly detection [@Pelleg2004], and mining emerging patterns [@Bailey2002].
 
@@ -557,7 +557,7 @@ Finally, we apply PCA,
 
 ```{r}
 
-pca_data <- prcomp(data_matrix_orig, center = TRUE, scale. = TRUE, retx = TRUE)
+pca_data <- prcomp(data_matrix, center = TRUE, scale. = TRUE, retx = TRUE)
 
 ```
 show its summary,
@@ -1293,7 +1293,7 @@ clara_12_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
 
 __For k = 2__,
 ```{r}
-print(clara_2_boot)
+print(k_clus_2_boot)
 ```
 
 __For k = 4__,
@@ -1310,6 +1310,30 @@ __For k = 12__,
 ```{r}
 print(k_clus_12_boot)
 ```
+
+__BOOTSTRAP FOR K-MEDOID__
+
+
+__For k = 2__,
+```{r}
+print(clara_2_boot)
+```
+
+__For k = 4__,
+```{r}
+print(clara_4_boot)
+```
+
+__For k = 5__,
+```{r}
+print(clara_5_boot)
+```
+
+__For k = 12__,
+```{r}
+print(clara_12_boot)
+```
+
 
 Then, for APN, AD, ADM, and FOM, we use clValid(), which also conveniently does our internal validity tests as well. Below, we show the combined summary for APN, AD, ADM, FOM, and the internal validation measurements, Connectivity, Silhouette Width, and the Dunn Index. Figure \@ref(fig:Stability-plots) graphically shows the results of the APN, AD, ADM, and FOM measurements.
 
@@ -1429,7 +1453,9 @@ fviz_silhouette(sil_k_rand_12, print.summary = TRUE,
 Finally, we perform external validation and determine the Rand Index for all of our k = 2 clusterings. First, we setup our original label clustering:
 
 ```{r}
-orig_cluster <- data_matrix_orig_mds[,c(11)]
+
+orig_cluster <- data.matrix(clean_sample)
+orig_cluster <- orig_cluster[,c(11)]
 
 sample_frame <- data.frame(sample)
 
@@ -1528,6 +1554,20 @@ randInd_k_diana_2 <- ext_stats_k_diana_2$corrected.rand
 print(paste0("Rand Index the DIANA-initialized k-means clustering: ", randInd_k_diana_2))
 
 ```
+
+__k = 2, k-medoid clustering__:
+
+```{r, tidy=FALSE}
+
+noquote("Cluster Size Comparison:")
+table(sample_frame$income, clara_2$cluster)
+ext_stats_k_medoid_2 <- cluster.stats(d=dist_matrix_scaled, orig_cluster,
+                                     clara_2$cluster)
+randInd_k_medoid_2 <- ext_stats_k_medoid_2$corrected.rand
+print(paste0("Rand Index for k-medoid clustering: ", randInd_k_medoid_2))
+
+```
+
 
 Table: Summary of all of the k = 2 clustering methods and their Rand Index when compared to the original labeling.
 
