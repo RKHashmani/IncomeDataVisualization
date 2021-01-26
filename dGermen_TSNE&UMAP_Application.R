@@ -36,16 +36,15 @@ write.csv(data5000_OHE,'5000frameOHE.csv', row.names = TRUE, col.names = TRUE)
 ## n_neighbors 5-50 , 10-15 
 ## min_dist 0.001-0.5 , 0.1
 ## def config 15, 0.1
-<<<<<<< HEAD
 UMAP_5000 = umap(data_matrix)
 df = data.frame(X = UMAP_5000[,1],
                 Y = UMAP_5000[,2],
-=======
+                Labels = dataLabels)
+
 i = 10
 UMAP_5000 = umap(data_matrix, n_neighbors = i, min_dist = 0.3)
 df = data.frame(X = UMAP_5000$layout[,1],
                 Y = UMAP_5000$layout[,2],
->>>>>>> d461358f67c98477073e657322d5981d6496727a
                 Labels = dataLabels)
 
 plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
