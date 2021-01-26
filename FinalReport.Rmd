@@ -867,6 +867,33 @@ plot(best_smacof_mds$conf,
          main = paste0("Symmetric Smacof MDS Mapping (Best Random Initialization)"))
 ```
 
+## UMAP
+
+```{r}
+head (data_matrix_mds, 3)
+```
+
+```{r}
+library(umap)
+```
+
+```{r}
+UMAP_5000 = umap(data_matrix_mds, n_neighbors = 30, min_dist = 0.15)
+df = data.frame(X = UMAP_5000$layout[,1],
+                Y = UMAP_5000$layout[,2],
+                Labels = dataLabels)
+
+plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
+  geom_point()
+name = paste("ID_71.png")
+png(name)
+print(plot)
+dev.off()
+```
+
+
+
+
 ## Clustering
 
 ### Hierarchical Clustering
