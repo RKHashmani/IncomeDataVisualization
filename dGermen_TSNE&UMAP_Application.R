@@ -55,19 +55,20 @@ print(plot)
 dev.off()
 
 # Hyperparameter tuning
-min_dist_1 = seq(0.001,0.2,0.01)
+min_dist_1 = seq(0.001,0.2,0.05)
 min_dist_2 = seq(0.1,0.5,0.05)
 min_dist = c(min_dist_1, min_dist_2)
-
-for (n_neig in seq(5,50,5)) { # 46 Iterations
-  for (min_distance in min_dist) { # 29 Iterations
+c = 0
+for (n_neig in seq(5,50,5)) { # 10 Iterations
+  for (min_distance in min_dist) { # 13 Iterations
     UMAP_Data = umap(data_matrix, n_neighbors = n_neig, min_dist = min_distance)
-    df = data.frame(X = UMAP_Data$layout[,1],
-                    Y = UMAP_Data$layout[,2],
+    df = data.frame(X = UMAP_Data[,1],
+                    Y = UMAP_Data[,2],
                     Labels = dataLabels)
     plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
       geom_point()
-    fileName = paste("N_N", n_neig, "M_D", min_distance)
+    c = c + 1
+    fileName = paste("ID",c,"N_N", n_neig, "M_D", min_distance,".png")
     png(fileName)
     print(plot)
     dev.off()
