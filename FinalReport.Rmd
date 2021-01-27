@@ -875,23 +875,99 @@ head (data_matrix_mds, 3)
 
 ```{r}
 library(umap)
+library(Rtsne)
 ```
 
-```{r eval=FALSE}
-UMAP_5000 = umap(data_matrix_mds, n_neighbors = 30, min_dist = 0.15)
+```{r UMAP-Param-Training, eval=FALSE}
+# Hyperparameter tuning
+min_dist_1 = seq(0.001,0.2,0.05)
+min_dist_2 = seq(0.1,0.5,0.05)
+min_dist = c(min_dist_1, min_dist_2)
+c = 0
+for (n_neig in seq(5,50,5)) { # 10 Iterations
+  for (min_distance in min_dist) { # 13 Iterations
+    UMAP_Data = umap(data_matrix, n_neighbors = n_neig, min_dist = min_distance)
+    df = data.frame(X = UMAP_Data[,1],
+                    Y = UMAP_Data[,2],
+                    Labels = dataLabels)
+    plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
+      geom_point()
+    c = c + 1
+    fileName = paste("ID",c,"N_N", n_neig, "M_D", min_distance,".png")
+    png(fileName)
+    print(plot)
+    dev.off()
+  }
+}
+```
+
+```{r}
+dataLabels = clean_sample[,11] %>%
+  unlist %>%
+  factor(labels = c("<=50K",">50K"))
+
+sample_UMAP <- data.matrix(clean_sample)
+sample_UMAP <- sample_UMAP[,-c(11)]
+
+```
+
+
+```{r UMAP, cache=TRUE}
+UMAP_5000 = umap(sample_UMAP, n_neighbors = 30, min_dist = 0.15)
 df = data.frame(X = UMAP_5000$layout[,1],
                 Y = UMAP_5000$layout[,2],
                 Labels = dataLabels)
+```
 
+```{r UMAP-Plot}
 plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
-  geom_point()
-name = paste("ID_71.png")
-png(name)
-print(plot)
-dev.off()
+  geom_point() +
+  ggtitle("UMAP Plot") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print (plot)
+```
+
+## TSNE
+
+```{r TSNE-param-train, eval=FALSE}
+c = 0
+for (per in seq(1,400,5)) { # 50 Iterations
+  
+    tSNE_Data = Rtsne(data_matrix,perplexity = per)
+    df = data.frame(X = tSNE_Data$Y[,1],
+                    Y = tSNE_Data$Y[,2],
+                    Labels = dataLabels)
+    plot = ggplot(data = df, aes(x = X ,y = Y, col = Labels)) +
+      geom_point()
+    c = c + 1
+    fileName = paste("ID",c,"Perplexity", per,".png")
+    png(fileName)
+    print(plot)
+    dev.off()
+  
+}
 ```
 
 
+```{r TSNE, cache=TRUE}
+tSNE_Data = Rtsne(sample_UMAP,perplexity = 81)
+    df_tsne = data.frame(X = tSNE_Data$Y[,1],
+                    Y = tSNE_Data$Y[,2],
+                    Labels = dataLabels)
+    
+```
+
+```{r TSNE-Plot}
+
+plot_tsne = ggplot(data = df_tsne, aes(x = X ,y = Y, col = Labels)) +
+  geom_point() +
+  ggtitle("t-SNE Plot") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print (plot_tsne)
+
+```
 
 
 ## Clustering
