@@ -877,7 +877,7 @@ head (data_matrix_mds, 3)
 library(umap)
 ```
 
-```{r}
+```{r eval=FALSE}
 UMAP_5000 = umap(data_matrix_mds, n_neighbors = 30, min_dist = 0.15)
 df = data.frame(X = UMAP_5000$layout[,1],
                 Y = UMAP_5000$layout[,2],
@@ -1144,125 +1144,43 @@ fviz_cluster(clara_8, data = data_matrix_clus)
 fviz_cluster(clara_12, data = data_matrix_clus)
 ```
 
-## Self-Organizing maps (SOM) CHECK IF VALIDATION PLOTS ARE CORRECT
-
+## Self-Organizing maps (SOM)
 
 ```{r SOM, cache=TRUE}
-grid_size <- ceiling(sample_number ^ (1/2.5))
-som_grid <- somgrid(xdim = grid_size, ydim = grid_size, topo = 'hexagonal', toroidal = T)
+data_matrix_s <- data_matrix_clus
+som_grid <- somgrid(xdim = 20, ydim = 20, topo = "hexagonal")
+som_model <- som(data_matrix_s, 
+                 grid=som_grid, 
+                 rlen=200, 
+                 keep.data = TRUE
+                )
+som_codebook = getCodes(som_model) 
 
-som_model <- som(data_matrix_scaled, grid = som_grid, keep.data = TRUE)
-```
-
-```{r SOM-plots1, cache=TRUE}
+#Training progress for SOM
 plot(som_model, type="changes")
+#Node count plot
+plot(som_model, type="count", main="Node Counts")
+# U-matrix visualisation
+plot(som_model, type="dist.neighbours", main = "SOM neighbour distances")
 
-plot(som_model, type="count", heatkey = TRUE)
-
-plot(som_model, type="dist.neighbours")
-
-plot(som_model, type="codes")
+k_clus_som_2 <- kmeans(scale(som_codebook), centers = 2, nstart = 500)
+k_clus_som_4 <- kmeans(scale(som_codebook), centers = 4, nstart = 500)
+k_clus_som_5 <- kmeans(scale(som_codebook), centers = 5, nstart = 500)
+k_clus_som_12 <- kmeans(scale(som_codebook), centers = 12, nstart = 500)
 
 ```
-```{r SOM-Plots2, fig.height=10, fig.width=10, cache=TRUE}
-plot(som_model)
-```
 
-```{r eval=FALSE}
-## extract some data to make it easier to use
+```{r SOM-Plots}
 
-som.events <- som_model$codes[[1]]
+plot(som_model, type="mapping", bgcol = k_clus_som_2$cluster, main = "Self-Organizing Map, k = 2")
+plot(som_model, type="mapping", bgcol = k_clus_som_4$cluster, main = "Self-Organizing Map, k = 4")
+plot(som_model, type="mapping", bgcol = k_clus_som_5$cluster, main = "Self-Organizing Map, k = 5")
+plot(som_model, type="mapping", bgcol = k_clus_som_12$cluster, main = "Self-Organizing Map, k = 12")
 
-som.events.colors <- rgb(som.events[,1], som.events[,2], som.events[,3], maxColorValue = 255) # DID NOT WORK
-
-som.dist <- as.matrix(dist(som.events))
-```
-
-```{r eval=FALSE}
-#WORKS ????????????
-mydata <- som_model$codes 
-wss <- (nrow(mydata)-1)*sum(apply(mydata,2,var)) 
-for (i in 2:11) {
-  wss[i] <- sum(kmeans(mydata, centers=i)$withinss)
-}
-plot(wss)
-```
-```{r}
-par(mfrow=c(1,1)) # back to one plot
-clusterdata <- getCodes(som_model)
-wss <- (nrow(clusterdata)-1)*sum(apply(clusterdata,2,var))
-for (i in 1:30) wss[i] <- sum(kmeans(clusterdata,
-                                     centers=i)$withinss) #i range from 1 to no of nodes -1...
-par(mar=c(5.1,4.1,4.1,2.1)) #par sets or adjusts plotting parameters. Not allways necessary. "mar" = margin.
-plot(1:30, wss, type="b", xlab="Number of Clusters", #match i
-     ylab="Within groups sum of squares", main="Within cluster sum of squares (WCSS)")
 
 ```
 
 
-```{r}
-#WORKS
-k = 2
-set.seed(786) #for reproducability
-fit_kmeans <- kmeans(clusterdata[,1:4], k) #3 clusters are used, as indicated by the wss development.
-cl_assignmentk <- fit_kmeans$cluster[som_model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
-#but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
-clustersKm <- cl_assignmentk #back to original data.
-```
-```{r}
-#WORKS
-#2a. Create distance matrix
-DistanceM <- dist(clusterdata[,1:4], method = "euclidean") #create the distance matrix
-fit_hac <- hclust(DistanceM, method="ward.D2") #fit the distances. "D2", since "DistanceM" is not squared.
-plot(fit_hac) #display dendrogram. To me, it looks like a 5 or 6 cluster solution.
-#in my world 3-5 clusters
-HACgroups <- cutree(fit_hac, k) # cut tree into k clusters
-# draw dendrogram with red borders around the 6 clusters 
-rect.hclust(fit_hac, k, border="grey")
-```
-
-```{r}
-#WORKS
-cl_assignmenth <- HACgroups[som_model$unit.classif] #we have 100 (since grid=10*10) codes with asigned clusters,
-#but we have 149 units. The above is to assign units to clusters based on their class-id (code-id) in the SOM model.
-clustersHac <- cl_assignmenth #back to original data.
-```
-
-```{r}
-
-head(data_matrix_orig_mds, 5)
-```
-
-
-```{r}
-#WORKS
-trueN <- data_matrix_orig_mds
-kmeancolor <- clustersKm #set color indicator
-haccolor <- clustersHac #set color indicator
-trueccolor <- trueN #set color indicator
-```
-```{r}
-#WORKS
-contrast <- c("#FA4925", "#22693E", "#D4D40F", "#2C4382", "#F0F0F0", "#3D3D3D") #my own, contrasting pairs
-kindofpretty <- c("#B39B66", "#3B3828", "#FAE6B9", "#F2F2F2", "#86BA9F", "#135E1F", "#FFF70A", "#FFB10A", "#0498BD", "#FF780A") #my own
-kindofpretty2 <- c("#B39B66", "#3B3828", "#FAE6B9", "#F2F2F2", "#F58B00", "#F5D800", "#7185A3", "#786187") #my own
-#or define palettes using RColorBrewer:
-```
-
-
-```{r , eval=FALSE, fig.height=10, fig.width=10}
-#WORKS
-colour4 <- tricolor(som_model$grid, phi = c(pi/8, 6, -pi/6), offset = 0.1)
-par(mfrow=c(1,1))
-plot(som_model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,11],col=contrast[trueccolor])
-add.cluster.boundaries(som_model, fit_kmeans$cluster, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
-```
-
-```{r , fig.height=10, fig.width=10}
-par(mfrow=c(1,1))
-plot(som_model, type="mapping", shape = "straight", border = "grey", labels = data_matrix_orig_mds[,11],col=contrast[haccolor])
-add.cluster.boundaries(som_model, HACgroups, lwd = 3, lty = 2, col=contrast[4]) #name your pallette and choose color...
-```
 
 
 ## Validation of Clusterings
@@ -1294,7 +1212,7 @@ k_clus_12_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
 ```
 
 
-### Maybe Not Needed:
+### K-medoid
 ```{r Clara-boot, cache=TRUE, results="hide"}
 
 clara_2_boot <- clusterboot(data_matrix_scaled, B=100, bootmethod="boot",
@@ -1594,6 +1512,7 @@ randInd_k_medoid_2 <- ext_stats_k_medoid_2$corrected.rand
 print(paste0("Rand Index for k-medoid clustering: ", randInd_k_medoid_2))
 
 ```
+
 
 
 Table: Summary of all of the k = 2 clustering methods and their Rand Index when compared to the original labeling.
