@@ -1,0 +1,745 @@
+---
+title: "CENG 574 Assignment 6"
+author:
+- "Raheem Hashmani, Student I.D.: 2462927"
+
+date: "23/12/2020"
+
+header-includes:
+ \usepackage{titling}
+ \pretitle{\begin{flushleft}\Huge}
+ \posttitle{\end{flushleft}}
+ \preauthor{\begin{flushleft}\LARGE}
+ \postauthor{\end{flushleft}}
+ \predate{\begin{flushleft}\LARGE}
+ \postdate{\end{flushleft}}
+ \usepackage{tikz}
+ \usepackage{booktabs}
+ \usepackage{float}
+ \floatplacement{table}{H}
+ \floatplacement{figure}{H}
+
+
+output: 
+  bookdown::pdf_document2:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    extra_dependencies: "subfig"
+    
+    
+urlcolor: blue
+linkcolor: black
+bibliography: references.bib
+csl: ieee.csl
+---
+
+\vspace{-5truemm}
+
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"personal_photo.jpg\" style=\"float: right;width: 150px;\"/>')
+   });
+</script>
+
+\begin{tikzpicture}[remember picture, overlay]
+  \node [anchor=north east, xshift=-2.4cm, yshift = 7.0cm]  at (current page.north east)
+     {\includegraphics[height=3.8cm]{personal_photo.jpg}};
+\end{tikzpicture}
+
+<!-- https://stackoverflow.com/questions/23957278/how-to-add-table-of-contents-in-rmarkdown -->
+
+---
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(results = 'hold')
+# knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+```
+
+
+
+## Preliminary Analysis
+
+### Reading the Data
+
+We first load the datasets. Table 1 and Table \@ref(tab:Train-peek) show us the a peek inside the train dataset (the test dataset is of the same form). 
+
+```{r Train-peek, tidy=FALSE}
+
+census_train <- read.csv("Data/census/adult.data.csv", header=TRUE, sep = ",")
+census_test <- read.csv("Data/census/adult.test.csv", header=TRUE, sep = ",")
+
+library("knitr")
+
+kable(census_train[0:8,0:7], align = "l", row.names = TRUE,
+      caption = "The First 7 Columns.", booktabs = T)
+kable(census_train[0:8,8:15], align = "l", row.names = TRUE,
+      caption = "The Remaining 8 Columns.", booktabs = T)
+
+```
+
+
+### Determining Basic Properties
+
+Now let us find the number of samples for the test and train datasets and the number of features for each sample.
+
+```{r}
+samples_train = nrow(census_train)
+features_train = ncol(census_train)
+
+samples_test = nrow(census_test)
+features_test = ncol(census_test)
+
+sprintf(paste0("The total number of samples in the training set is %s and the number of ",
+               "features is %s."), samples_train, features_train)
+sprintf(paste0("The total number of samples in the test set is %s and the number of ",
+               "features is %s."), samples_test, features_test)
+```
+
+However, this dataset contains one column for its classes, the "income" column. Thus, in essence, there are __14 features and 2 classes__.
+
+### Determining the Number of Unique Values
+
+__Training Set__ 
+
+First, we will find the number of unique values in each column for the Training set.
+
+```{r message = FALSE}
+library("dplyr") # Loading a library that will help us.
+census_train %>% summarise_all(n_distinct)
+```
+
+Let us see if our dataset is imbalanced.
+```{r}
+census_train %>% group_by(income) %>% summarize(count=n())
+```
+
+As we can see, there are almost __3 times more "<=50K" classes then there are ">50K" classes__ (3.15 times, to be precise).
+
+__Test Set__
+
+Now we will find the number of unique values in each column for the Test set.
+
+```{r message = FALSE}
+census_test %>% summarise_all(n_distinct)
+```
+
+Let's see if the test set is imbalanced as well.
+```{r}
+census_test %>% group_by(income) %>% summarize(count=n())
+```
+
+Once again, there are almost __3 times more "<=50K" classes then there are ">50K" classes__ (3.23 times, to be precise).
+
+### Column Labels and Various Properties
+
+Now let us summarize by __combining__ both the Train and Test datasets. Table \@ref(tab:combined-table) shows the range of all the values and Table 4 summarizes the learned properties so far.
+```{r combined-table, tidy=FALSE}
+census_total <- rbind(census_train, census_test)
+
+#As a Sanity Check:
+
+samples_total = nrow(census_total)
+features_total = ncol(census_total)
+
+sprintf(paste0("The number of samples in the total set is %s and the number of ",
+               "features is %s."), samples_total, features_total)
+
+census_total %>% summarise_all(n_distinct)
+
+range = data.frame(min=sapply(census_total,min),max=sapply(census_total,max))
+kable(range, align = "l", row.names = TRUE,
+      caption = "The Range of Values for all Features", booktabs = T)
+
+# To see the unique classes in the final feature, "income".
+vec <- as.vector(census_total['income'])
+unique(vec)
+
+```
+
+Table: Column labels, their type, number of unique values, range (if applicable), and representation type for the combined dataset.
+
+| Column Label   | Type                  | Unique Values (Range if Applicable) | Representation |
+|----------------|-----------------------|-------------------------------------|----------------|
+| age            | Discrete              | 73 (17 - 90)                        | Ratio          |
+| workclass      | Qualitative           | 9                                   | Nominal        |
+| fnlwgt         | Discrete              | 21648 (12285 - 1490400)             | Ratio          |
+| education      | Qualitative           | 16                                  | Ordinal        |
+| education-num  | Discrete              | 16 (1-16)                           | Ratio          |
+| marital-status | Qualitative           | 7                                   | Nominal        |
+| occupation     | Qualitative           | 15                                  | Nominal        |
+| relationship   | Qualitative           | 6                                   | Nominal        |
+| race           | Qualitative           | 5                                   | Nominal        |
+| sex            | Qualitative           | 2                                   | Nominal        |
+| capital-gain   | Discrete              | 119 (0 - 99999)                     | Ratio          |
+| capital-loss   | Discrete              | 92 (0 - 4356)                       | Ratio          |
+| hours-per-week | Discrete              | 94 (1 - 99)                         | Ratio          |
+| native-country | Qualitative           | 42                                  | Nominal        |
+| income         | Qualitative (Classes) | 2                                   | Ordinal        |
+
+
+## Data Preparation
+
+We will perform three different data preparations, one for PCA, one for MDS, and one for clustering.
+
+__PCA__
+
+First, we will turn our Data Frame into a numerical matrix. This process will apply a label encoding to our qualitative data. Table 5 and Table \@ref(tab:Data-matrix-orig) shows a sample of this matrix.
+```{r Data-matrix-orig}
+data_matrix_orig <- data.matrix(census_total)
+
+kable(data_matrix_orig[0:8,0:7], align = "l", caption = "The First 7 Columns.", booktabs = T)
+kable(data_matrix_orig[0:8,8:15], align = "l", caption = "The Remaining 8 Columns.", booktabs = T)
+
+```
+
+Finally, we will remove the last column as it is our "classes" column, i.e. income.
+
+```{r}
+data_matrix <- data_matrix_orig[,-c(15)]
+```
+
+__MDS__ 
+
+Because many MDS algorithms are either $O(n^{3})$ or $O(n^{2})$, we will sample them according to their proportions for the "income" class. Using the combined dataset, we will remove rows with missing data (since we have an ample number of rows, we can afford to delete them) and duplicate data (certain MDS algorithms, such as Sammon's Non-Linear Mapping, do not work if there are 0s present in the distance matrix, so duplicate rows must be removed) and sample 5000 datapoints, making sure that the ratio of "<=50K" to ">50K" is 3.2:1, as averaged in Section 2.1.3. Finally, we will convert it into a data matrix and remove the "income" column, similar to what we did for PCA.
+
+```{r Data-prep-mds, cache=TRUE}
+# Removing rows with missing values
+df_no_missing <- census_total[!(census_total$workclass==" ?" | 
+                                  census_total$occupation==" ?" | 
+                                  census_total$native.country ==" ?"),]
+# Removing duplicate rows
+df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
+# Choosing Equal Number of datapoints from both classes.
+temp_df <- df_no_dup %>% group_by(income) %>% sample_n(100)
+# Removing the excess >50K class datapoints in order to make the sample
+# representative of the original dataset.
+sample_frame <-temp_df[1:(nrow(temp_df) - 70),]
+
+data_matrix_orig_mds <- data.matrix(sample_frame)
+
+data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
+sample_number <- nrow(data_matrix_mds)
+print(paste0("The number of samples selected is: ", sample_number))
+
+```
+
+```{r eval=FALSE, echo=TRUE}
+# To save the selected sample dataset, for reproducibility.
+# write.csv(sample_frame,'5000frame.csv', row.names = TRUE, col.names = TRUE)
+```
+
+```{r}
+# To read pre-sampled data
+
+sample_frame = read.csv("data/5000frame.csv")
+data_matrix_orig_mds <- data.matrix(sample_frame)
+ 
+data_matrix_mds <- data_matrix_orig_mds[,-c(15)]
+sample_number <- nrow(data_matrix_mds)
+print(paste0("The number of samples selected is: ", sample_number))
+
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+# For 5000:
+# 3810, 2620
+# For 130:
+#   100, 70
+# For 1000:
+#   762, 524
+
+sample_frame %>% group_by(income) %>% summarize(count=n())
+
+sample_matrix <- data.frame(data_matrix_orig_mds)
+sample_matrix %>% group_by(income) %>% summarize(count=n())
+
+
+# For Total
+census_total %>% group_by(income) %>% summarize(count=n())
+
+sample_matrix <- data.frame(data_matrix_orig)
+sample_matrix %>% group_by(income) %>% summarize(count=n())
+
+
+# To check removed missing and duplicated data
+range = data.frame(min=sapply(df_no_missing,min),max=sapply(df_no_missing,max))
+kable(range, align = "l", row.names = TRUE,
+      caption = "The Range of Values for all Features", booktabs = T)
+
+print(paste0("No. of rows without missing: ", nrow(df_no_missing)))
+print(paste0("No. of rows without missing and duplicate: ", nrow(df_no_dup)))
+
+
+```
+
+```{r}
+# Testing entire dataset
+
+data_frame_orig <- data.matrix(df_no_dup)
+
+```
+
+
+```{r}
+#Removing Final Weight and Categorical Education
+head(data_frame_orig, 5)
+
+data_frame <- data_frame_orig
+
+# data_frame <- scale(data_frame_orig)
+
+# data_frame <- data_frame[,-c(3, 4, 15)]
+data_frame <- data_frame[,-c(3, 4)]
+head(data_frame, 5)
+```
+
+
+```{r}
+boxplot(data_frame)$out
+```
+```{r}
+set.seed(482)
+boxplot(data_frame)
+identify(rep(1, length(data_frame)), data_frame, labels = seq_along(data_frame))
+```
+
+
+```{r}
+# Load the package
+library(ggstatsplot)
+
+# Create a boxplot of the dataset, outliers are shown as two distinct points
+boxplot(data_frame)$out
+#Create a boxplot that labels the outliers  
+ggbetweenstats(data_frame, age, relationship, outlier.tagging = TRUE)
+```
+```{r}
+library(psych)
+```
+
+```{r}
+outlier(data_frame)
+```
+```{r}
+md <- mahalanobis(data_frame, center = colMeans(data_frame), cov = cov(data_frame))
+
+alpha <- .5
+cutoff <- (qchisq(p = 1 - alpha, df = ncol(data_frame)))
+names_outliers_MH <- which(md > cutoff)
+excluded_mh <- names_outliers_MH
+data_clean_mh <- data_frame[-excluded_mh, ]
+dim (data_frame[excluded_mh, ])
+dim (data_clean_mh)
+
+outlier(data_clean_mh)
+boxplot(data_clean_mh)
+```
+
+```{r}
+# Alt method:
+percentage.to.remove <- 10 # Remove 5% of points
+number.to.remove     <- trunc(nrow(data_frame) * percentage.to.remove / 100)
+m.dist               <- mahalanobis(data_frame, colMeans(data_frame), cov(data_frame))
+m.dist.order         <- order(m.dist, decreasing=TRUE)
+rows.to.keep.index   <- m.dist.order[(number.to.remove+1):nrow(data_frame)]
+data_frame_clean         <- data_frame[rows.to.keep.index,]
+```
+
+
+```{r}
+dim (data_frame_clean)
+dim (data_clean_mh)
+```
+
+
+```{r}
+outlier(data_frame_clean)
+# outlier(data_clean_mh)
+```
+```{r, fig.height=10, fig.width=10}
+library(ggbiplot)
+
+pca_data <- prcomp(data_clean_mh, center = TRUE, scale. = TRUE, retx = TRUE)
+
+#I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
+source("my_functions.R")
+
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = data_clean_mh[,c(13)])
+
+# To make the arrows more visible
+
+# pca_plot$layers
+pca_plot$layers <- c(pca_plot$layers, pca_plot$layers[[1]])
+# pca_plot$layers
+pca_plot + 
+  labs(color="Income", # Labeling the Legend
+       title = "Plotting Datapoints on the First 2 Principal Components") +
+  theme(plot.title = element_text(hjust = 0.5),
+                     plot.caption=element_text(hjust = 0))
+```
+
+```{r}
+frame <- data.frame(data_frame)
+dim(frame) 
+```
+
+```{r}
+# Individual Removal
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$age, .25)
+Q3 <- quantile(frame$age, .75)
+IQR <- IQR(frame$age)
+
+# a <- Q3 + 1.5*IQR
+# b <- Q1 - 1.5*IQR
+# print (a)
+# print (b)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$age>= (Q1 - 1.5*IQR) & frame$age<= (Q3 + 1.5*IQR))
+
+# For workclass
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$workclass, .25)
+# Q3 <- quantile(frame$workclass, .75)
+# IQR <- IQR(frame$workclass)
+# 
+# a <- Q3 + 1.5*IQR
+# b <- Q1 - 1.5*IQR
+# print (a)
+# print (b)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$workclass>= (Q1 - 1.5*IQR) & frame$workclass<= (Q3 + 1.5*IQR))
+
+
+# For Education
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$education.num, .25)
+Q3 <- quantile(frame$education.num, .75)
+IQR <- IQR(frame$education.num)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$education.num>= (Q1 - 1.5*IQR) & frame$education.num<= (Q3 + 1.5*IQR))
+
+# For marital
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$marital.status, .25)
+# Q3 <- quantile(frame$marital.status, .75)
+# IQR <- IQR(frame$marital.status)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$marital.status>= (Q1 - 1.5*IQR) & frame$marital.status<= (Q3 + 1.5*IQR))
+
+# For Occupation
+
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$occupation, .25)
+# Q3 <- quantile(frame$occupation, .75)
+# IQR <- IQR(frame$occupation)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$occupation>= (Q1 - 1.5*IQR) & frame$occupation<= (Q3 + 1.5*IQR))
+
+# # For race
+# 
+# #find Q1, Q3, and interquartile range for values in column A
+# Q1 <- quantile(frame$race, .25)
+# Q3 <- quantile(frame$race, .75)
+# IQR <- IQR(frame$race)
+# 
+# #only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+# frame <- subset(frame, frame$race>= (Q1 - 1.5*IQR) & frame$race<= (Q3 + 1.5*IQR))
+
+# For capital gain
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$capital.gain, .25)
+Q3 <- quantile(frame$capital.gain, .75)
+IQR <- IQR(frame$capital.gain)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$capital.gain>= (Q1 - 1.5*IQR) & frame$capital.gain<= (Q3 + 1.5*IQR))
+
+# For capital loss
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$capital.loss, .25)
+Q3 <- quantile(frame$capital.loss, .75)
+IQR <- IQR(frame$capital.loss)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$capital.loss>= (Q1 - 1.5*IQR) & frame$capital.loss<= (Q3 + 1.5*IQR))
+
+# For hours per week
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame$hours.per.week, .25)
+Q3 <- quantile(frame$hours.per.week, .75)
+IQR <- IQR(frame$hours.per.week)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame <- subset(frame, frame$hours.per.week>= (Q1 - 1.5*IQR) & frame$hours.per.week<= (Q3 + 1.5*IQR))
+
+#view row and column count of new data frame
+dim(frame) 
+# head (frame, 2)
+
+```
+
+```{r}
+head(frame, 2)
+
+library("dplyr")
+frame %>% group_by(income) %>% summarize(count=n())
+
+boxplot(scale(data_frame))
+
+frame_scaled <- scale(frame)
+boxplot(frame_scaled)
+```
+
+```{r}
+
+census_train <- read.csv("Data/census/adult.data.csv", header=TRUE, sep = ",")
+census_test <- read.csv("Data/census/adult.test.csv", header=TRUE, sep = ",")
+census_total <- rbind(census_train, census_test)
+
+# Removing Missing
+df_no_missing <- census_total[!(census_total$workclass==" ?" | 
+                                  census_total$occupation==" ?" | 
+                                  census_total$native.country ==" ?"),]
+# Removing duplicate rows
+df_no_dup = df_no_missing[!duplicated(df_no_missing), ]
+
+# Testing entire dataset
+# data_frame_orig <- data.matrix(df_no_dup)
+data_frame_orig <- df_no_dup
+
+#Removing Final Weight and Categorical Education
+head(data_frame_orig, 5)
+
+data_frame <- data_frame_orig
+
+# data_frame <- scale(data_frame_orig)
+
+# data_frame <- data_frame[,-c(3, 4, 15)]
+data_frame <- data_frame[,-c(3, 4)]
+head(data_frame, 5)
+
+frame_no_outlier <- data.frame(data_frame)
+```
+
+```{r}
+# Individual Removal
+############ For Age
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$age, .25)
+Q3 <- quantile(frame_no_outlier$age, .75)
+IQR <- IQR(frame_no_outlier$age)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$age>= (Q1 - 1.5*IQR) & frame_no_outlier$age<= (Q3 + 1.5*IQR))
+
+############# For Education
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$education.num, .25)
+Q3 <- quantile(frame_no_outlier$education.num, .75)
+IQR <- IQR(frame_no_outlier$education.num)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$education.num>= (Q1 - 1.5*IQR) & frame_no_outlier$education.num<= (Q3 + 1.5*IQR))
+
+############# For capital gain
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$capital.gain, .25)
+Q3 <- quantile(frame_no_outlier$capital.gain, .75)
+IQR <- IQR(frame_no_outlier$capital.gain)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$capital.gain>= (Q1 - 1.5*IQR) & frame_no_outlier$capital.gain<= (Q3 + 1.5*IQR))
+
+############# For capital loss
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$capital.loss, .25)
+Q3 <- quantile(frame_no_outlier$capital.loss, .75)
+IQR <- IQR(frame_no_outlier$capital.loss)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$capital.loss>= (Q1 - 1.5*IQR) & frame_no_outlier$capital.loss<= (Q3 + 1.5*IQR))
+
+############# For hours per week
+
+#find Q1, Q3, and interquartile range for values in column A
+Q1 <- quantile(frame_no_outlier$hours.per.week, .25)
+Q3 <- quantile(frame_no_outlier$hours.per.week, .75)
+IQR <- IQR(frame_no_outlier$hours.per.week)
+
+#only keep rows in dataframe that have values within 1.5*IQR of Q1 and Q3
+frame_no_outlier <- subset(frame_no_outlier, frame_no_outlier$hours.per.week>= (Q1 - 1.5*IQR) & frame_no_outlier$hours.per.week<= (Q3 + 1.5*IQR))
+
+# Remove the zeroed columns of income gain/loss
+
+data_full_clean <- frame_no_outlier[,-c(9, 10)]
+
+#view row and column count of new data frame
+dim(data_full_clean)
+```
+
+```{r}
+head(data_full_clean, 2)
+
+# Sample 5K points:
+
+
+library(plyr)
+library(dplyr)
+
+# Removing duplicate rows
+data_full_clean = data_full_clean[!duplicated(data_full_clean), ]
+dim (data_full_clean)
+
+# data_full_clean %>% group_by(income) %>% summarize(count=n())
+temp <- data_full_clean %>% group_by(income) %>% sample_n(2500)
+
+temp %>% group_by(income) %>% summarize(count=n()) # Checking if above was done correctly.
+
+sample <- scale(data.matrix(temp))
+
+boxplot(scale(data.matrix(data_frame)))
+
+boxplot(scale(data.matrix(data_full_clean)))
+
+boxplot(sample)
+
+```
+```{r}
+clean_sample <- read.csv("5000framev1.csv")
+
+sample <- scale(data.matrix(clean_sample))
+```
+
+
+```{r, fig.height=10, fig.width=10}
+library(ggbiplot)
+
+pca_data <- prcomp(sample, center = TRUE, scale. = TRUE, retx = TRUE)
+
+#I created a function, my_ggbiplot, to edit the color scheme of the ggbiplot:
+source("my_functions.R")
+
+pca_plot<-my_ggbiplot(pca_data, var.axes=TRUE, groups = sample[,c(11)])
+
+# To make the arrows more visible
+
+# pca_plot$layers
+pca_plot$layers <- c(pca_plot$layers, pca_plot$layers[[1]])
+# pca_plot$layers
+pca_plot + 
+  labs(color="Income", # Labeling the Legend
+       title = "Plotting Datapoints on the First 2 Principal Components") +
+  theme(plot.title = element_text(hjust = 0.5),
+                     plot.caption=element_text(hjust = 0))
+```
+```{r}
+
+# Loading libraries we will need
+library(cluster)
+library(purrr)
+library(dendextend)
+
+# DIANA TESTING
+
+sample_data <- sample[,-c(11)]
+
+dist_matrix_scaled = dist(sample_data, method = "euclidean")
+
+hier_diana <- diana(dist_matrix_scaled)
+
+
+
+# Divise coefficient
+print(paste0("The divisive coefficient is: ", hier_diana$dc))
+
+# Plotting
+pltree(hier_diana, cex = 0.6, hang = -1, main = "Dendrogram of DIANA")
+
+#DIANA
+cut_diana_2 <- cutree(hier_diana, k = 2)
+cut_diana_6 <- cutree(hier_diana, k = 6)
+
+# DIANA
+cluster_diana_2 = aggregate(sample_data,list(cluster=cut_diana_2),mean)
+cluster_diana_2 <- cluster_diana_2[,-c(1)]
+
+cluster_diana_6 = aggregate(sample_data,list(cluster=cut_diana_6),mean)
+cluster_diana_6 <- cluster_diana_6[,-c(1)]
+
+dend_obj_diana <- as.dendrogram(hier_diana)
+dend_col_diana_2 <- color_branches(dend_obj_diana, k=2)
+dend_col_diana_6 <- color_branches(dend_obj_diana, k=6)
+plot(dend_col_diana_2, main = "Dendrogram (method = DIANA, k=2)")
+plot(dend_col_diana_6, main = "Dendrogram (method = DIANA, k=6)")
+
+library(factoextra)
+
+k_clus_diana_2 <- kmeans(sample_data, centers = cluster_diana_2)
+k_clus_diana_6 <- kmeans(sample_data, centers = cluster_diana_6)
+
+noquote("DIANA Method Initialized, k = 2:")
+print(k_clus_diana_2$size)
+noquote("DIANA Method Initialized, k = 6:")
+print(k_clus_diana_6$size)
+
+fviz_cluster(k_clus_diana_2, data = sample_data)
+fviz_cluster(k_clus_diana_6, data = sample_data)
+
+# kmeans
+
+elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=40)
+elbow_silho <- fviz_nbclust(sample_data, kmeans, method = "silhouette", k.max=30)
+
+elbow_wss
+
+elbow_silho
+
+k_clus_2 <- kmeans(sample_data, centers = 2, nstart = 100)
+k_clus_4 <- kmeans(sample_data, centers = 4, nstart = 100)
+k_clus_5 <- kmeans(sample_data, centers = 5, nstart = 100)
+k_clus_20 <- kmeans(sample_data, centers = 20, nstart = 100)
+
+fviz_cluster(k_clus_2, data = sample_data)
+fviz_cluster(k_clus_4, data = sample_data)
+fviz_cluster(k_clus_5, data = sample_data)
+fviz_cluster(k_clus_20, data = sample_data)
+
+
+```
+
+```{r fig.width=10}
+elbow_wss <- fviz_nbclust(sample_data, kmeans, method = "wss", k.max=40)
+elbow_silho <- fviz_nbclust(sample_data, kmeans, method = "silhouette", k.max=10)
+
+elbow_wss
+
+elbow_silho
+```
+
+```{r eval=FALSE, echo=TRUE}
+# To save the selected sample dataset, for reproducibility.
+write.csv(temp ,'5000framev3.csv', row.names = FALSE, col.names = TRUE)
+```
