@@ -3,7 +3,7 @@
 
 This project aims to analyze the U.S. Census Bureau Income Dataset. The main goal was to project the data onto 2 dimensions to better visualize the multivariable dataset and to detect clusters using unsupervised machine learning algorithms. It was submitted as part of the Final Project for Fall 2020 METU CENG 574: Statistical Data Analysis course.
 
-The codes used to generate the results for the [Final Paper](CENG_574_Final_Paper.pdf) can be found in the [Final_Paper_Script](Final_Paper_Script.R). The original R Markdown file's generated pdf, [Final_Paper_Extra_Plots](Final_Paper_Extra_Plots.pdf), contains all of the extra plots that were mentioned, but not shown, in the Final Paper. Additionally, these plots can be seen individually directly inside the [Plots directory](Plots/).
+The codes used to generate the results for the [Final Paper](CENG_574_Final_Paper.pdf) can be found in the [Final_Paper_Script](Final_Paper_Script.R). The original [R Markdown file's](RMarkdown/FinalReport.Rmd) generated pdf, [Final_Paper_Extra_Plots](Final_Paper_Extra_Plots.pdf), contains all of the extra plots that were mentioned, but not shown, in the Final Paper. Additionally, these plots can be seen individually directly inside the [Plots directory](Plots/).
 
 ### Projection Methods Used:
 * Principal Component Analysis (PCA)
